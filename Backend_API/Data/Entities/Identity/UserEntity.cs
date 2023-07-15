@@ -7,7 +7,6 @@ namespace Backend_API.Data.Entities.Identity
     {
         [StringLength(100)]
         public string Name { get; set; }
-        public string ScreenName { get; set; }
         public string Image { get; set; }
         public string Description { get; set; }
         public bool Verified { get; set; }

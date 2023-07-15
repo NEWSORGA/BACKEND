@@ -4,42 +4,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Backend_API.Migrations
+namespace ASP_API.Migrations
 {
     /// <inheritdoc />
-    public partial class addcommentsfollows : Migration
+    public partial class addfollowstweetscomments : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "comments",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    TweetId = table.Column<int>(type: "integer", nullable: false),
-                    UserId = table.Column<int>(type: "integer", nullable: false),
-                    CommentText = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_comments", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_comments_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_comments_tweets_TweetId",
-                        column: x => x.TweetId,
-                        principalTable: "tweets",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+            
 
             migrationBuilder.CreateTable(
                 name: "follows",
@@ -65,6 +38,63 @@ namespace Backend_API.Migrations
                         name: "FK_follows_AspNetUsers_FollowerId",
                         column: x => x.FollowerId,
                         principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "tweets",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    TweetText = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    RepostedId = table.Column<int>(type: "integer", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_tweets", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_tweets_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_tweets_tweets_RepostedId",
+                        column: x => x.RepostedId,
+                        principalTable: "tweets",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "comments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    TweetId = table.Column<int>(type: "integer", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    CommentText = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_comments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_comments_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_comments_tweets_TweetId",
+                        column: x => x.TweetId,
+                        principalTable: "tweets",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -96,6 +126,27 @@ namespace Backend_API.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "tweets_media",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Path = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    TweetId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_tweets_media", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_tweets_media_tweets_TweetId",
+                        column: x => x.TweetId,
+                        principalTable: "tweets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "comments_media",
                 columns: table => new
                 {
@@ -114,6 +165,8 @@ namespace Backend_API.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            
 
             migrationBuilder.CreateIndex(
                 name: "IX_comments_TweetId",
@@ -141,6 +194,16 @@ namespace Backend_API.Migrations
                 column: "FollowerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_tweets_RepostedId",
+                table: "tweets",
+                column: "RepostedId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_tweets_UserId",
+                table: "tweets",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_tweets_likes_TweetId",
                 table: "tweets_likes",
                 column: "TweetId");
@@ -149,11 +212,31 @@ namespace Backend_API.Migrations
                 name: "IX_tweets_likes_UserId",
                 table: "tweets_likes",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_tweets_media_TweetId",
+                table: "tweets_media",
+                column: "TweetId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "AspNetRoleClaims");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserClaims");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserLogins");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserRoles");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUserTokens");
+
             migrationBuilder.DropTable(
                 name: "comments_media");
 
@@ -164,7 +247,19 @@ namespace Backend_API.Migrations
                 name: "tweets_likes");
 
             migrationBuilder.DropTable(
+                name: "tweets_media");
+
+            migrationBuilder.DropTable(
+                name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
                 name: "comments");
+
+            migrationBuilder.DropTable(
+                name: "tweets");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
         }
     }
 }

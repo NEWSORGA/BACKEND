@@ -1,6 +1,8 @@
-﻿using Backend_API.Constans;
+﻿using Backend_API.Asbtract;
+using Backend_API.Constans;
 using Backend_API.Data.Entities.Identity;
 using Backend_API.Models.Auth;
+using Backend_API.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
@@ -14,9 +16,11 @@ namespace Backend_API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly UserManager<UserEntity> _userManager;
-        public AuthController(UserManager<UserEntity> userManager)
+        private readonly IJwtTokenService _jwtTokenService;
+        public AuthController(UserManager<UserEntity> userManager, IJwtTokenService jwtTokenService)
         {
             _userManager = userManager;
+            _jwtTokenService = jwtTokenService;
         }
 
         // POST api/<AuthController>
@@ -27,34 +31,57 @@ namespace Backend_API.Controllers
             if (model.Image != null)
             {
                 var fileExp = Path.GetExtension(model.Image.FileName);
-                var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images/users");
+                var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images");
                 imageName = Path.GetRandomFileName() + fileExp;
                 using (var steam = System.IO.File.Create(Path.Combine(dirSave, imageName)))
                 {
                     await model.Image.CopyToAsync(steam);
                 }
             }
+     
+          
             var user = new UserEntity()
             {
-                Name = model.FirstName,
+                Name = model.Name,
                 Email = model.Email,
                 Image = imageName,
-                UserName = model.UserName,
-                ScreenName = model.UserName
+                UserName = "user" + _userManager.Users.Count()+1.ToString(),
+                Description = "",
+                Verified = false,
             };
+            
             var result = await _userManager.CreateAsync(user, model.Password);
+            
             if (result.Succeeded)
             {
-                result = await _userManager.AddToRoleAsync(user, Roles.Moderator);
+                var id = await _userManager.GetUserIdAsync(user);
+                user.UserName = "user" + id.ToString();
+                await _userManager.UpdateAsync(user);
+                result = await _userManager.AddToRoleAsync(user, Roles.User);
                 return Ok();
             }
             return BadRequest();
         }
 
         // PUT api/<AuthController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginViewModel model)
         {
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user == null)
+                    return BadRequest("Не вірно вказані дані");
+                if (!await _userManager.CheckPasswordAsync(user, model.Password))
+                    return BadRequest("Не вірно вказані дані");
+                var token = await _jwtTokenService.CreateToken(user);
+                return Ok(new { token });
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // DELETE api/<AuthController>/5

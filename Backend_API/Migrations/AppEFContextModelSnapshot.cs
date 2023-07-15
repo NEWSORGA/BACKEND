@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Backend_API.Migrations
+namespace ASP_API.Migrations
 {
     [DbContext(typeof(AppEFContext))]
     partial class AppEFContextModelSnapshot : ModelSnapshot
@@ -193,10 +193,6 @@ namespace Backend_API.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("ScreenName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
@@ -301,11 +297,15 @@ namespace Backend_API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Path")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("TweetId")
+                    b.Property<int?>("TweetId")
+                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
