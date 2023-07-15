@@ -36,11 +36,11 @@ namespace Backend_API.Controllers
             }
             var user = new UserEntity()
             {
-                FirstName = model.FirstName,
-                LastName = model.LastName,
+                Name = model.FirstName,
                 Email = model.Email,
                 Image = imageName,
                 UserName = model.UserName,
+                ScreenName = model.UserName
             };
             var result = await _userManager.CreateAsync(user, model.Password);
             if (result.Succeeded)

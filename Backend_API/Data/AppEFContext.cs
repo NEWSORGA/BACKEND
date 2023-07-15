@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Backend_API.Data.Entities.Identity;
+using Backend_API.Data.Entities;
 
 namespace Backend_API.Data
 {
@@ -9,13 +10,19 @@ namespace Backend_API.Data
         IdentityUserClaim<int>, UserRoleEntity, IdentityUserLogin<int>,
         IdentityRoleClaim<int>, IdentityUserToken<int>>
     {
+       
         public AppEFContext(DbContextOptions<AppEFContext> options)
             : base(options)
         {
 
         }
 
-
+        public DbSet<TweetEntity> Tweets { get; set; }
+        public DbSet<TweetMediaEnitity> TweetsMedias { get; set; }
+        public DbSet<TweetLikeEntity> TweetsLikes { get; set; }
+        public DbSet<CommentEntity> Comments { get; set; }
+        public DbSet<CommentMediaEntity> CommentsMedias { get; set; }
+        public DbSet<FollowEntity> Follows { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

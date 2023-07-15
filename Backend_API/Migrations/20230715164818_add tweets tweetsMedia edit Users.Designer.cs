@@ -3,6 +3,7 @@ using System;
 using Backend_API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Backend_API.Migrations
 {
     [DbContext(typeof(AppEFContext))]
-    partial class AppEFContextModelSnapshot : ModelSnapshot
+    [Migration("20230715164818_add tweets tweetsMedia edit Users")]
+    partial class addtweetstweetsMediaeditUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,90 +24,6 @@ namespace Backend_API.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("Backend_API.Data.Entities.CommentEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CommentText")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("TweetId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TweetId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("comments");
-                });
-
-            modelBuilder.Entity("Backend_API.Data.Entities.CommentMediaEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CommentId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Path")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CommentId");
-
-                    b.ToTable("comments_media");
-                });
-
-            modelBuilder.Entity("Backend_API.Data.Entities.FollowEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("FollowedId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("FollowerId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FollowedId");
-
-                    b.HasIndex("FollowerId");
-
-                    b.ToTable("follows");
-                });
 
             modelBuilder.Entity("Backend_API.Data.Entities.Identity.RoleEntity", b =>
                 {
@@ -270,30 +189,7 @@ namespace Backend_API.Migrations
                     b.ToTable("tweets");
                 });
 
-            modelBuilder.Entity("Backend_API.Data.Entities.TweetLikeEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("TweetId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TweetId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("tweets_likes");
-                });
-
-            modelBuilder.Entity("Backend_API.Data.Entities.TweetMediaEnitity", b =>
+            modelBuilder.Entity("Backend_API.Data.Entities.TweetsMedia", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -407,55 +303,6 @@ namespace Backend_API.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Backend_API.Data.Entities.CommentEntity", b =>
-                {
-                    b.HasOne("Backend_API.Data.Entities.TweetEntity", "Tweet")
-                        .WithMany()
-                        .HasForeignKey("TweetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Backend_API.Data.Entities.Identity.UserEntity", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Tweet");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Backend_API.Data.Entities.CommentMediaEntity", b =>
-                {
-                    b.HasOne("Backend_API.Data.Entities.CommentEntity", "Comment")
-                        .WithMany()
-                        .HasForeignKey("CommentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Comment");
-                });
-
-            modelBuilder.Entity("Backend_API.Data.Entities.FollowEntity", b =>
-                {
-                    b.HasOne("Backend_API.Data.Entities.Identity.UserEntity", "Followed")
-                        .WithMany()
-                        .HasForeignKey("FollowedId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Backend_API.Data.Entities.Identity.UserEntity", "Follower")
-                        .WithMany()
-                        .HasForeignKey("FollowerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Followed");
-
-                    b.Navigation("Follower");
-                });
-
             modelBuilder.Entity("Backend_API.Data.Entities.Identity.UserRoleEntity", b =>
                 {
                     b.HasOne("Backend_API.Data.Entities.Identity.RoleEntity", "Role")
@@ -492,26 +339,7 @@ namespace Backend_API.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Backend_API.Data.Entities.TweetLikeEntity", b =>
-                {
-                    b.HasOne("Backend_API.Data.Entities.TweetEntity", "Tweet")
-                        .WithMany()
-                        .HasForeignKey("TweetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Backend_API.Data.Entities.Identity.UserEntity", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Tweet");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Backend_API.Data.Entities.TweetMediaEnitity", b =>
+            modelBuilder.Entity("Backend_API.Data.Entities.TweetsMedia", b =>
                 {
                     b.HasOne("Backend_API.Data.Entities.TweetEntity", "Tweet")
                         .WithMany()
