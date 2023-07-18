@@ -6,6 +6,7 @@ using Backend_API.Constans;
 using Backend_API.Data;
 using Backend_API.Data.Entities;
 using Backend_API.Data.Entities.Identity;
+using Backend_API.Models.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -40,12 +41,26 @@ namespace ASP_API.Controllers
         }
 
         // GET api/<TweetsController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpGet("GetUserTweets")]
+        public async Task<IActionResult> GetUserTweets(int? UserId, int UserPageId) //перше користувач, який авторизований, другий параметр - користувач, чиї твіти отримати
         {
-            return "value";
+            var models = await _appEFContext.Tweets
+                .Where(s => s.UserId == UserPageId)
+                .Include(x => x.User)
+                .Include(x => x.Reposted)
+                .ToListAsync();
+
+            List<TweetViewModel> tweets = new List<TweetViewModel>();
+
+            foreach (TweetEntity item in models)
+            {
+                tweets.Add(HelperFunctions.ConvertToModel(item, UserId, _appEFContext, _mapper));
+            }
+
+            return Ok(tweets);   
         }
 
+        
         // POST api/<TweetsController>
    
         [HttpPost("CreateTweet")]
@@ -57,6 +72,7 @@ namespace ASP_API.Controllers
                     TweetText = model.TweetText,
                     UserId = model.UserId,
                     RepostedId = model.RepostedId,
+                    Views = 0,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                 };

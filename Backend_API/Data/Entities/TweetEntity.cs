@@ -14,6 +14,7 @@ namespace Backend_API.Data.Entities
         [ForeignKey("Reposted")]
         public int? RepostedId { get; set; }
         public virtual TweetEntity Reposted { get; set; }
+        public int Views { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }

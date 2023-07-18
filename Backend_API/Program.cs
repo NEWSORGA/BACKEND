@@ -1,3 +1,4 @@
+using ASP_API.Helpers;
 using ASP_API.Mapper;
 using Backend_API.Asbtract;
 using Backend_API.Data;
@@ -22,7 +23,6 @@ builder.Services.AddControllers().AddJsonOptions(x =>
 
 builder.Services.AddDbContext<AppEFContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("MyConnectionDB")));
-
 
 
 builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>
