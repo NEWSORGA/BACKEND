@@ -16,6 +16,12 @@ namespace Backend_API.Data.Entities
         public int UserId { get; set; }
         public virtual UserEntity User { get; set; }
 
+        [ForeignKey("CommentParent")]
+        public int? CommentParentId { get; set; }
+        public virtual CommentEntity? CommentParent { get; set; }
+
+        public virtual List<CommentEntity>? CommentsChildren { get; set; }
+        public virtual List<CommentMediaEntity>? CommentsMedia { get; set; }
         public string CommentText { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

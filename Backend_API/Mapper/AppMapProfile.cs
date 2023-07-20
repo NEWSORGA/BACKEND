@@ -1,4 +1,5 @@
 ﻿using ASP_API.Models;
+using ASP_API.Models.LikeTweet;
 using AutoMapper;
 using Backend_API.Data.Entities;
 using Backend_API.Data.Entities.Identity;
@@ -11,6 +12,7 @@ namespace ASP_API.Mapper
         public AppMapProfile()
         {
             CreateMap<TweetMediaEnitity, TweetViewImageModel>();
+            CreateMap<LikeTweetViewModel, TweetLikeEntity>();
 
             CreateMap<UserEntity, UserViewModel>();
         }
