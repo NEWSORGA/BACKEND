@@ -212,19 +212,12 @@ namespace ASP_API.Controllers
             foreach (var item in comments)
             {
                 var mediaComs = await _appEFContext.CommentsMedias.Where(s => s.CommentId == item.Id).ToListAsync();
-                foreach (var media in mediaComs)
+                foreach (var media in medias)
                 {
-                    var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images");
-                    string[] sizes = ((string)_configuration.GetValue<string>("ImageSizes")).Split(" ");
-                    foreach (var s in sizes)
-                    {
-                        int size = Convert.ToInt32(s);
-                        System.IO.File.Delete(Path.Combine(dirSave, s + "_" + media.Path));
-                    }
+                    HelperFunctions.DeleteMedia(media.Path, _configuration);
                     _appEFContext.Remove(media);
                 }
             }
-
             foreach (var media in medias)
             {
                 var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images");
