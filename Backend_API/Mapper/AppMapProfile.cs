@@ -1,4 +1,5 @@
 ﻿using ASP_API.Models;
+using ASP_API.Models.Comments;
 using ASP_API.Models.LikeTweet;
 using AutoMapper;
 using Backend_API.Data.Entities;
@@ -13,7 +14,7 @@ namespace ASP_API.Mapper
         {
             CreateMap<TweetMediaEnitity, TweetViewImageModel>();
             CreateMap<LikeTweetViewModel, TweetLikeEntity>();
-
+            CreateMap<CommentMediaEntity, CommentsViewImageModel>();
             CreateMap<UserEntity, UserViewModel>();
         }
     }
