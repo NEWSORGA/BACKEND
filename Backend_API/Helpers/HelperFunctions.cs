@@ -5,6 +5,7 @@ using Backend_API.Models.Auth;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using Microsoft.Extensions.Configuration;
 
 namespace ASP_API.Helpers
 {
@@ -76,6 +77,18 @@ namespace ASP_API.Helpers
             };
 
             return tweetModel;
+        }
+
+        public static void DeleteMedia(string path, IConfiguration _configuration)
+        {      
+                var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images");
+                string[] sizes = ((string)_configuration.GetValue<string>("ImageSizes")).Split(" ");
+                foreach (var s in sizes)
+                {
+                    int size = Convert.ToInt32(s);
+                    System.IO.File.Delete(Path.Combine(dirSave, s + "_" + path));
+                }
+
         }
     }
 }

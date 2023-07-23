@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Drawing;
 using System.IO;
+using static System.Net.Mime.MediaTypeNames;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -142,13 +143,7 @@ namespace ASP_API.Controllers
         public async Task<IActionResult> DeleteMedia(int id)
         {
             var item = await _appEFContext.TweetsMedias.SingleOrDefaultAsync(s => s.Id == id);
-            var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images");
-            string[] sizes = ((string)_configuration.GetValue<string>("ImageSizes")).Split(" ");
-            foreach (var s in sizes)
-            {
-                int size = Convert.ToInt32(s);
-                System.IO.File.Delete(Path.Combine(dirSave, s + "_" + item.Path));
-            }
+            HelperFunctions.DeleteMedia(item.Path, _configuration);
             _appEFContext.TweetsMedias.Remove(item);
             _appEFContext.SaveChanges();
 
@@ -172,13 +167,7 @@ namespace ASP_API.Controllers
                 foreach (int mediaId in model.MediaDeletedIds)
                 {
                     var image = await _appEFContext.TweetsMedias.SingleAsync(s => s.Id == mediaId);
-                    var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images");
-                    string[] sizes = ((string)_configuration.GetValue<string>("ImageSizes")).Split(" ");
-                    foreach (var s in sizes)
-                    {
-                        int size = Convert.ToInt32(s);
-                        System.IO.File.Delete(Path.Combine(dirSave, s + "_" + image.Path));
-                    }
+                    HelperFunctions.DeleteMedia(image.Path, _configuration);
                     _appEFContext.Remove(image);
                 }
             }
@@ -212,28 +201,16 @@ namespace ASP_API.Controllers
             foreach (var item in comments)
             {
                 var mediaComs = await _appEFContext.CommentsMedias.Where(s => s.CommentId == item.Id).ToListAsync();
-                foreach (var media in mediaComs)
+                foreach (var media in medias)
                 {
-                    var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images");
-                    string[] sizes = ((string)_configuration.GetValue<string>("ImageSizes")).Split(" ");
-                    foreach (var s in sizes)
-                    {
-                        int size = Convert.ToInt32(s);
-                        System.IO.File.Delete(Path.Combine(dirSave, s + "_" + media.Path));
-                    }
+                    HelperFunctions.DeleteMedia(media.Path, _configuration);
                     _appEFContext.Remove(media);
                 }
             }
-
             foreach (var media in medias)
             {
-                var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images");
-                string[] sizes = ((string)_configuration.GetValue<string>("ImageSizes")).Split(" ");
-                foreach (var s in sizes)
-                {
-                    int size = Convert.ToInt32(s);
-                    System.IO.File.Delete(Path.Combine(dirSave, s + "_" + media.Path));
-                }
+                HelperFunctions.DeleteMedia(media.Path, _configuration);
+                _appEFContext.Remove(media);
                 _appEFContext.Remove(media);
             }
             
