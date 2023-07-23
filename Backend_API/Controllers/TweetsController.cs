@@ -181,7 +181,6 @@ namespace ASP_API.Controllers
                     }
                     _appEFContext.Remove(image);
                 }
-                await _appEFContext.SaveChangesAsync();
             }
 
             if (model.AddedMediaIds.Length > 0)
@@ -192,7 +191,6 @@ namespace ASP_API.Controllers
                     image.TweetId = tweet.Id;
 
                 }
-                await _appEFContext.SaveChangesAsync();
             }
 
             _appEFContext.Update(tweet);
@@ -227,8 +225,20 @@ namespace ASP_API.Controllers
                 }
             }
 
-            _appEFContext.RemoveRange(medias);
+            foreach (var media in medias)
+            {
+                var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images");
+                string[] sizes = ((string)_configuration.GetValue<string>("ImageSizes")).Split(" ");
+                foreach (var s in sizes)
+                {
+                    int size = Convert.ToInt32(s);
+                    System.IO.File.Delete(Path.Combine(dirSave, s + "_" + media.Path));
+                }
+                _appEFContext.Remove(media);
+            }
+            
             _appEFContext.Remove(tweet);
+
             await _appEFContext.SaveChangesAsync();
             return Ok("Deleted " + id);
         }
