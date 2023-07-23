@@ -10,7 +10,7 @@ namespace Backend_API.Data.Entities
         public string Path { get; set; }
         public DateTime CreatedAt { get; set; }
 
-        [ForeignKey("Tweet")]
+       
         public int ? TweetId { get; set; }
         public virtual TweetEntity Tweet { get; set; }
     }

@@ -11,6 +11,13 @@ namespace ASP_API.Models
         public int? RepostedId { get; set; }
         public int[] MediaIds { get; set; }
     }
+    public class TweetEditModel
+    {
+        public string TweetText { get; set; }
+        public int? RepostedId { get; set; }
+        public int[] AddedMediaIds { get; set; }
+        public int[] MediaDeletedIds { get; set; }
+    }
     public class TweetViewModel
     {
         public int Id { get; set; }

@@ -52,6 +52,7 @@ namespace ASP_API.Helpers
 
             return tweetModel;
         }
+      
         public static async Task<TweetViewModel> ConvertToModel2(TweetEntity tweet, int? UserId, AppEFContext _appEFContext, IMapper _mapper)
         {
             var likesCount = await _appEFContext.TweetsLikes.Where(l => l.TweetId == tweet.Id).ToListAsync();
