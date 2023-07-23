@@ -7,8 +7,10 @@ namespace Backend_API.Data.Entities
     {
         public int Id { get; set; }
         [ForeignKey("Comment")]
-        public int CommentId { get; set; }
-        public virtual CommentEntity Comment { get; set; }
+        public int? CommentId { get; set; }
+        public virtual CommentEntity? Comment { get; set; }
+
+        public DateTime CreatedAt { get; set; }
         public string Path { get; set; }
     }
 }

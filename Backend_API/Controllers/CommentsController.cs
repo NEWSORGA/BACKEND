@@ -55,6 +55,39 @@ namespace ASP_API.Controllers
             }
             return BadRequest(404);
         }
+        [HttpPost("uploadMedia")]
+        public async Task<IActionResult> UploadMedia([FromForm] CommentsUploadImageModel model)
+        {
+            //fdasfsdfsafssssssss
+            string imageName = string.Empty;
+            if (model.Media != null)
+            {
+                var fileExp = Path.GetExtension(model.Media.FileName);
+                var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images");
+                imageName = Path.GetRandomFileName() + fileExp;
+                using (var ms = new MemoryStream())
+                {
+                    await model.Media.CopyToAsync(ms);
+                    var bmp = new Bitmap(System.Drawing.Image.FromStream(ms));
+                    string[] sizes = ((string)_configuration.GetValue<string>("ImageSizes")).Split(" ");
+                    foreach (var s in sizes)
+                    {
+                        int size = Convert.ToInt32(s);
+                        var saveImage = ImageWorker.CompressImage(bmp, size, size, false);
+                        saveImage.Save(Path.Combine(dirSave, s + "_" + imageName));
+                    }
+                }
+                var entity = new CommentMediaEntity();
+                entity.Path = imageName;
+                entity.CreatedAt = DateTime.UtcNow;
+
+                _appEFContext.CommentsMedias.Add(entity);
+                _appEFContext.SaveChanges();
+                return Ok(_mapper.Map<CommentsViewImageModel>(entity));
+
+            }
+            return BadRequest();
+        }
 
         [HttpDelete("RemoveComment/{id}")]
         public async Task<IActionResult> Delete(int id)
