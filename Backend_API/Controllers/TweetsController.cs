@@ -211,7 +211,6 @@ namespace ASP_API.Controllers
             {
                 HelperFunctions.DeleteMedia(media.Path, _configuration);
                 _appEFContext.Remove(media);
-                _appEFContext.Remove(media);
             }
             
             _appEFContext.Remove(tweet);

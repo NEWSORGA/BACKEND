@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ASP_API.Migrations
 {
     [DbContext(typeof(AppEFContext))]
-    [Migration("20230715201616_add follows tweets comments")]
-    partial class addfollowstweetscomments
+    [Migration("20230725102316_azure db")]
+    partial class azuredb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,6 +33,9 @@ namespace ASP_API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("CommentParentId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("CommentText")
                         .IsRequired()
                         .HasColumnType("text");
@@ -50,6 +53,8 @@ namespace ASP_API.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CommentParentId");
 
                     b.HasIndex("TweetId");
 
@@ -260,6 +265,9 @@ namespace ASP_API.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("Views")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("RepostedId");
@@ -308,7 +316,6 @@ namespace ASP_API.Migrations
                         .HasColumnType("text");
 
                     b.Property<int?>("TweetId")
-                        .IsRequired()
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -412,6 +419,10 @@ namespace ASP_API.Migrations
 
             modelBuilder.Entity("Backend_API.Data.Entities.CommentEntity", b =>
                 {
+                    b.HasOne("Backend_API.Data.Entities.CommentEntity", "CommentParent")
+                        .WithMany("CommentsChildren")
+                        .HasForeignKey("CommentParentId");
+
                     b.HasOne("Backend_API.Data.Entities.TweetEntity", "Tweet")
                         .WithMany()
                         .HasForeignKey("TweetId")
@@ -424,6 +435,8 @@ namespace ASP_API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("CommentParent");
+
                     b.Navigation("Tweet");
 
                     b.Navigation("User");
@@ -432,7 +445,7 @@ namespace ASP_API.Migrations
             modelBuilder.Entity("Backend_API.Data.Entities.CommentMediaEntity", b =>
                 {
                     b.HasOne("Backend_API.Data.Entities.CommentEntity", "Comment")
-                        .WithMany()
+                        .WithMany("CommentsMedia")
                         .HasForeignKey("CommentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -518,9 +531,7 @@ namespace ASP_API.Migrations
                 {
                     b.HasOne("Backend_API.Data.Entities.TweetEntity", "Tweet")
                         .WithMany()
-                        .HasForeignKey("TweetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("TweetId");
 
                     b.Navigation("Tweet");
                 });
@@ -559,6 +570,13 @@ namespace ASP_API.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Backend_API.Data.Entities.CommentEntity", b =>
+                {
+                    b.Navigation("CommentsChildren");
+
+                    b.Navigation("CommentsMedia");
                 });
 
             modelBuilder.Entity("Backend_API.Data.Entities.Identity.RoleEntity", b =>
