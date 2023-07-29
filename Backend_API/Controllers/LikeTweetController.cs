@@ -6,6 +6,7 @@ using ASP_API.Models.LikeTweet;
 using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ASP_API.Controllers
 {
@@ -20,9 +21,12 @@ namespace ASP_API.Controllers
             _appEFContext = appEFContext;
             _mapper = mapper;
         }
+        [Authorize]
         [HttpPost("check")]
         public async Task<IActionResult> Check([FromBody] LikeTweetViewModel model)
         {
+            var user = User;
+            
             var result = await _appEFContext.TweetsLikes.AnyAsync(x=> x.UserId == model.UserId && x.TweetId == model.TweetId);
             return Ok(result);
         }

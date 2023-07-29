@@ -7,6 +7,9 @@
         public string Password { get; set; }
         public string ConfirmPassword { get; set; }
         public IFormFile Image { get; set; }
+        public IFormFile BackgroundImage { get; set; }
+        public string Country { get; set; }
+        public string City { get; set; }
     }
 
     public class UserViewModel

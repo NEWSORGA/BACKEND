@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ASP_API.Migrations
 {
     [DbContext(typeof(AppEFContext))]
-    [Migration("20230725102316_azure db")]
-    partial class azuredb
+    [Migration("20230725152451_first")]
+    partial class first
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -71,8 +71,11 @@ namespace ASP_API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CommentId")
+                    b.Property<int?>("CommentId")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Path")
                         .IsRequired()
@@ -446,9 +449,7 @@ namespace ASP_API.Migrations
                 {
                     b.HasOne("Backend_API.Data.Entities.CommentEntity", "Comment")
                         .WithMany("CommentsMedia")
-                        .HasForeignKey("CommentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CommentId");
 
                     b.Navigation("Comment");
                 });

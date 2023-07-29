@@ -22,7 +22,12 @@ namespace Backend_API.Controllers
             _userManager = userManager;
             _jwtTokenService = jwtTokenService;
         }
-
+        [HttpGet()]
+        public async Task<IActionResult> Get()
+        {
+            
+            return Ok("Kuku");
+        }
         // POST api/<AuthController>
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromForm] CreateUserViewModel model)
@@ -38,8 +43,19 @@ namespace Backend_API.Controllers
                     await model.Image.CopyToAsync(steam);
                 }
             }
-     
-          
+
+            String bgImageName = string.Empty;
+            if (model.BackgroundImage != null)
+            {
+                var fileExp = Path.GetExtension(model.BackgroundImage.FileName);
+                var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images");
+                bgImageName = Path.GetRandomFileName() + fileExp;
+                using (var steam = System.IO.File.Create(Path.Combine(dirSave, bgImageName)))
+                {
+                    await model.Image.CopyToAsync(steam);
+                }
+            }
+
             var user = new UserEntity()
             {
                 Name = model.Name,
@@ -48,6 +64,9 @@ namespace Backend_API.Controllers
                 UserName = "user" + _userManager.Users.Count()+1.ToString(),
                 Description = "",
                 Verified = false,
+                Country = model.Country,
+                City = model.City,
+                BackgroundImage = bgImageName
             };
             
             var result = await _userManager.CreateAsync(user, model.Password);
@@ -65,7 +84,7 @@ namespace Backend_API.Controllers
 
         // PUT api/<AuthController>/5
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginViewModel model)
+        public async Task<IActionResult> Login([FromForm] LoginViewModel model)
         {
             try
             {
