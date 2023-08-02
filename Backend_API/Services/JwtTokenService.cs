@@ -22,7 +22,8 @@ namespace Backend_API.Services
             var roles = await _userManager.GetRolesAsync(user);
             List<Claim> claims = new List<Claim>()
             {
-                new Claim("email", user.Email),
+                new Claim("id", user.Id.ToString()),
+                new Claim("name", user.Name),
                 new Claim("image", user.Image ?? string.Empty),
             };
             foreach (var role in roles)

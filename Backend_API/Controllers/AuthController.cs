@@ -14,6 +14,7 @@ using System.Data;
 using System.Drawing;
 using System.Net;
 using System.Security.Claims;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -50,7 +51,7 @@ namespace Backend_API.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromForm] CreateUserViewModel model)
         {
-            String imageName = string.Empty;
+            System.String imageName = string.Empty;
             if (model.Image != null)
             {
                 var fileExp = Path.GetExtension(model.Image.FileName);
@@ -62,7 +63,7 @@ namespace Backend_API.Controllers
                 }
             }
 
-            String bgImageName = string.Empty;
+            System.String bgImageName = string.Empty;
             if (model.BackgroundImage != null)
             {
                 var fileExp = Path.GetExtension(model.BackgroundImage.FileName);
@@ -113,7 +114,7 @@ namespace Backend_API.Controllers
                 using (var response = await client.GetAsync(model.Image))
                 {
 
-                    String imageName = string.Empty;
+                    System.String imageName = string.Empty;
 
                     var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images");
                     imageName = Path.GetRandomFileName() + extension;
@@ -178,14 +179,63 @@ namespace Backend_API.Controllers
         {
             try
             {
-                var us = GoogleJsonWebSignature.ValidateAsync(model.Token, new GoogleJsonWebSignature.ValidationSettings());
-                var user = await _userManager.FindByEmailAsync(model.Email);
+                GoogleJsonWebSignature.ValidationSettings settings = new GoogleJsonWebSignature.ValidationSettings();
+                GoogleJsonWebSignature.Payload payload = GoogleJsonWebSignature.ValidateAsync(model.Token, settings).Result;
+
+                if(payload == null)
+                    return BadRequest("Login error!");
+
+                var user = await _userManager.FindByEmailAsync(payload.Email);
+
+                var token = "";
+
                 if (user == null)
-                    return BadRequest("Не вірно вказані дані");
-                if (user.AccessToken != model.Token)
-                    return BadRequest("Не вірно вказані дані");
-                var token = await _jwtTokenService.CreateToken(user);
-                return Ok(new { token });
+                {
+                    var client = new HttpClient();
+                    string fileName = null;
+                    string extension = ".png";
+
+                    using (var response = await client.GetAsync(payload.Picture))
+                    {
+
+                        System.String imageName = string.Empty;
+
+                        var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images");
+                        imageName = Path.GetRandomFileName() + extension;
+                        using (var steam = System.IO.File.Create(Path.Combine(dirSave, imageName)))
+                        {
+                            await response.Content.CopyToAsync(steam);
+                        }
+
+                        var newUser = new UserEntity()
+                        {
+                            Name = payload.Name,
+                            Email = payload.Email,
+                            Image = imageName,
+                            UserName = "user" + _userManager.Users.Count() + 1.ToString(),
+                            Description = "",
+                            Verified = false,
+                            Country = model.Country,
+                            CountryCode = model.CountryCode.ToLower(),
+                            BackgroundImage = null,
+                            AccessToken = model.Token
+                        };
+                        var result = await _userManager.CreateAsync(newUser);
+
+                        if (result.Succeeded)
+                        {
+                            var id = await _userManager.GetUserIdAsync(newUser);
+                            newUser.UserName = "user" + id.ToString();
+                            await _userManager.UpdateAsync(newUser);
+                            result = await _userManager.AddToRoleAsync(newUser, Roles.User);
+                            token = await _jwtTokenService.CreateToken(newUser);
+                            return Ok(new { token });
+                        }
+                    }
+                }
+
+                token = await _jwtTokenService.CreateToken(user);
+                return Ok(new {token});
 
             }
             catch (Exception ex)
@@ -202,7 +252,7 @@ namespace Backend_API.Controllers
             {
                 var email = User.FindFirst(ClaimTypes.Email).Value;
                 var user = await _userManager.Users.SingleOrDefaultAsync(u => u.Email == email);
-                String imageName = string.Empty;
+                System.String imageName = string.Empty;
                 if (model.BackgroundImage != null)
                 {
                     var fileExp = Path.GetExtension(model.BackgroundImage.FileName);

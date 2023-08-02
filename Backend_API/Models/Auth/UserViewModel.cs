@@ -43,8 +43,9 @@
 
     public class LoginGoogleViewModel
     {
-        public string Email { get; set; }
         public string Token { get; set; }
+        public string Country { get; set; }
+        public string CountryCode { get; set; }
     }
 
     public class ChangeBgModel
