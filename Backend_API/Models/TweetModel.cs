@@ -7,7 +7,6 @@ namespace ASP_API.Models
     public class TweetCreateModel
     {
         public string TweetText { get; set; }
-        public int UserId { get; set; }
         public int? RepostedId { get; set; }
         public int[]? MediaIds { get; set; }
     }

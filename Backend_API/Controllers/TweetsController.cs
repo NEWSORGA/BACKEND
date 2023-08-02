@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Drawing;
 using System.IO;
+using System.Security.Claims;
 using static System.Net.Mime.MediaTypeNames;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -28,11 +29,13 @@ namespace ASP_API.Controllers
         private readonly AppEFContext _appEFContext;
         private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
-        public TweetsController(AppEFContext appEFContext, IConfiguration configuration, IMapper mapper)
+        private readonly UserManager<UserEntity> _userManager;
+        public TweetsController(AppEFContext appEFContext, IConfiguration configuration, IMapper mapper, UserManager<UserEntity> userManager)
         {
             _appEFContext = appEFContext;
             _configuration = configuration;
             _mapper = mapper;
+            _userManager = userManager;
         }
 
         // GET: api/<TweetsController>
@@ -70,17 +73,19 @@ namespace ASP_API.Controllers
             return Ok(tweets);   
         }
 
-        
+
         // POST api/<TweetsController>
-   
+        [Authorize]
         [HttpPost("CreateTweet")]
         public async Task<IActionResult> Post([FromForm] TweetCreateModel model)
         {
-          
-                var tweet = new TweetEntity()
+            var email = User.FindFirst(ClaimTypes.Email).Value;
+            var user = await _userManager.Users.SingleOrDefaultAsync(u => u.Email == email);
+
+            var tweet = new TweetEntity()
                 {
                     TweetText = model.TweetText,
-                    UserId = model.UserId,
+                    UserId = user.Id,
                     RepostedId = model.RepostedId,
                     Views = 0,
                     CreatedAt = DateTime.UtcNow,
