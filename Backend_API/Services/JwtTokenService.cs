@@ -25,6 +25,7 @@ namespace Backend_API.Services
                 new Claim("id", user.Id.ToString()),
                 new Claim("name", user.Name),
                 new Claim("image", user.Image ?? string.Empty),
+                new Claim("email", user.Email),
             };
             foreach (var role in roles)
             {

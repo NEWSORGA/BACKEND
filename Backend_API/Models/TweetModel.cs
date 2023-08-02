@@ -9,7 +9,7 @@ namespace ASP_API.Models
         public string TweetText { get; set; }
         public int UserId { get; set; }
         public int? RepostedId { get; set; }
-        public int[] MediaIds { get; set; }
+        public int[]? MediaIds { get; set; }
     }
     public class TweetEditModel
     {

@@ -7,6 +7,9 @@ using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
+using Backend_API.Data.Entities.Identity;
 
 namespace ASP_API.Controllers
 {
@@ -16,10 +19,12 @@ namespace ASP_API.Controllers
     {
         private readonly IMapper _mapper;
         private readonly AppEFContext _appEFContext;
-        public LikeTweetController(IMapper mapper, AppEFContext appEFContext)
+        private readonly UserManager<UserEntity> _userManager;
+        public LikeTweetController(IMapper mapper, AppEFContext appEFContext, UserManager<UserEntity> userManager)
         {
             _appEFContext = appEFContext;
             _mapper = mapper;
+            _userManager = userManager;
         }
         [Authorize]
         [HttpPost("check")]
@@ -37,20 +42,36 @@ namespace ASP_API.Controllers
             var result = await _appEFContext.TweetsLikes.Where(x=> x.TweetId == id).ToListAsync();
             return Ok(result);
         }
-        [HttpPost("likeTweet")]
-        public async Task<IActionResult> Post([FromForm] LikeTweetViewModel model)
+
+        [Authorize]
+        [HttpPost("{id}")]
+        public async Task<IActionResult> Post(int id)
         {
-            var result = await _appEFContext.TweetsLikes.AnyAsync(x => x.UserId == model.UserId && x.TweetId == model.TweetId);
-            if (!result)
+            var email = User.FindFirst(ClaimTypes.Email).Value;
+            var user = await _userManager.Users.SingleOrDefaultAsync(u => u.Email == email);
+
+            var result = await _appEFContext.TweetsLikes.SingleOrDefaultAsync(x => x.UserId == user.Id && x.TweetId == id);
+            if (result == null)
             {
-                TweetLikeEntity like = _mapper.Map<TweetLikeEntity>(model);
+                TweetLikeEntity like = new TweetLikeEntity
+                {
+                    TweetId = id,
+                    UserId = user.Id
+                };
                 _appEFContext.AddAsync(like);
                 _appEFContext.SaveChangesAsync();
 
-                return Ok(like);
+
+                return Ok("Liked");
             }
             else
-                return BadRequest(406);
+            {
+                _appEFContext.Remove(result);
+                _appEFContext.SaveChangesAsync();
+                return Ok("unLiked");
+            }
+            return BadRequest();
+
         }
 
         [HttpDelete("delete/{id}")]

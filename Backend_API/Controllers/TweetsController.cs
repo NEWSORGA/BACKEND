@@ -91,7 +91,7 @@ namespace ASP_API.Controllers
                 await _appEFContext.SaveChangesAsync();
 
 
-                if (model.MediaIds.Length > 0)
+                if (model.MediaIds != null)
                 {
                     foreach (int mediaId in model.MediaIds)
                     {
