@@ -114,7 +114,7 @@ if (!Directory.Exists(dir))
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(dir),
-    RequestPath = "/images/users"
+    RequestPath = "/images"
 });
 
 app.UseAuthentication();
