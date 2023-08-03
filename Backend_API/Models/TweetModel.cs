@@ -6,9 +6,11 @@ namespace ASP_API.Models
 {
     public class TweetCreateModel
     {
-        public string TweetText { get; set; }
+        public string? TweetText { get; set; }
         public int? RepostedId { get; set; }
         public int[]? MediaIds { get; set; }
+        public DateTime? PostTime { get; set; }
+        public string TimeZone { get; set; }
     }
     public class TweetEditModel
     {
@@ -20,7 +22,7 @@ namespace ASP_API.Models
     public class TweetViewModel
     {
         public int Id { get; set; }
-        public string TweetText { get; set; }
+        public string? TweetText { get; set; }
         public List<TweetViewImageModel> ? Medias { get; set; }
         public UserViewModel User { get; set; }
         public TweetViewModel ? Reposted { get; set; }

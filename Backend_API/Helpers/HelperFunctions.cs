@@ -14,8 +14,19 @@ namespace ASP_API.Helpers
 
         public static string ConvertDateTimeToStr(DateTime dt)
         {
+            if(dt.Minute == 30 && dt.Hour == 14)
+            {
+                Console.WriteLine("dfas");
+            }
             if (dt.Date == DateTime.UtcNow.Date)
             {
+                DateTime saveNow = DateTime.Now;
+
+                DateTime saveUtcNow = DateTime.UtcNow;
+
+                Console.WriteLine($"UtcNow: {saveUtcNow.ToString()}");
+                Console.WriteLine($"Now: {saveNow.ToString()}");
+
                 if (DateTime.UtcNow.Hour - dt.Hour > 0)
                     return DateTime.UtcNow.Hour - dt.Hour + "h";
 
@@ -48,7 +59,7 @@ namespace ASP_API.Helpers
                 CommentsCount = _appEFContext.Comments.Where(c => c.TweetId == tweet.Id).ToList().Count,
                 ViewsCount = tweet.Views,
                 CreatedAt = tweet.CreatedAt,
-                CreatedAtStr = ConvertDateTimeToStr(tweet.CreatedAt)
+                CreatedAtStr = ConvertDateTimeToStr(tweet.PostTime)
             };
 
             return tweetModel;
@@ -73,7 +84,7 @@ namespace ASP_API.Helpers
                 CommentsCount = commentsCount.Count,
                 ViewsCount = tweet.Views,
                 CreatedAt = tweet.CreatedAt,
-                CreatedAtStr = ConvertDateTimeToStr(tweet.CreatedAt)
+                CreatedAtStr = ConvertDateTimeToStr(tweet.PostTime)
             };
 
             return tweetModel;

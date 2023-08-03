@@ -56,13 +56,16 @@ namespace ASP_API.Controllers
         [HttpGet("GetUserTweets")]
         public async Task<IActionResult> GetUserTweets(int? UserId, int UserPageId) //перше користувач, який авторизований, другий параметр - користувач, чиї твіти отримати
         {
-  
+
             var models = await _appEFContext.Tweets
                 .Where(s => s.UserId == UserPageId)
                 .Include(x => x.User)
                 .Include(x => x.Reposted)
+                .Where(x => DateTime.Compare(x.PostTime, DateTime.UtcNow) < 0)
+                .OrderByDescending(x => x.PostTime)
                 .ToListAsync();
 
+            //models.Sort((x, y) => DateTime.Compare(x.PostTime, y.PostTime));
             List<TweetViewModel> tweets = new List<TweetViewModel>();
 
             foreach (TweetEntity item in models)
@@ -79,15 +82,20 @@ namespace ASP_API.Controllers
         [HttpPost("CreateTweet")]
         public async Task<IActionResult> Post([FromForm] TweetCreateModel model)
         {
+            if ((model.TweetText == null || model.TweetText == "") && model.MediaIds.Length == 0 && model.RepostedId == null)
+                return BadRequest("All fields are empty!");
             var email = User.FindFirst(ClaimTypes.Email).Value;
             var user = await _userManager.Users.SingleOrDefaultAsync(u => u.Email == email);
 
+            DateTime postTime = model.PostTime == null ? DateTime.UtcNow : model.PostTime.Value.AddSeconds(-10);
+     
             var tweet = new TweetEntity()
                 {
                     TweetText = model.TweetText,
                     UserId = user.Id,
                     RepostedId = model.RepostedId,
                     Views = 0,
+                    PostTime = postTime,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                 };
