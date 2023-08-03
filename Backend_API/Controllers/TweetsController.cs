@@ -87,7 +87,7 @@ namespace ASP_API.Controllers
             var email = User.FindFirst(ClaimTypes.Email).Value;
             var user = await _userManager.Users.SingleOrDefaultAsync(u => u.Email == email);
 
-            DateTime postTime = model.PostTime == null ? DateTime.UtcNow : model.PostTime.Value.AddSeconds(-10);
+            DateTime postTime = model.PostTime == null ? DateTime.UtcNow.AddSeconds(-10) : model.PostTime.Value;
      
             var tweet = new TweetEntity()
                 {

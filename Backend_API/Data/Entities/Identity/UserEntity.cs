@@ -14,6 +14,9 @@ namespace Backend_API.Data.Entities.Identity
         public string Country { get; set; }
         public string CountryCode { get; set; }
         public string? AccessToken { get; set; }
+        public int Followers { get; set; } = 0;
+        public int Following { get; set; } = 0;
+        public int Likes { get; set; } = 0;
         public virtual ICollection<UserRoleEntity> UserRoles { get; set; }
     }
 }

@@ -10,9 +10,9 @@ namespace Backend_API.Data.Entities
         [ForeignKey("Follower")]
         public int FollowerId { get; set;}
         public virtual UserEntity Follower { get; set; }
-        [ForeignKey("Followed")]
-        public int FollowedId { get; set; }
-        public virtual UserEntity Followed { get; set; }
+        [ForeignKey("User")]
+        public int UserId { get; set; }
+        public virtual UserEntity User { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }

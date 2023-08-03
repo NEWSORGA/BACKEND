@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Backend_API.Asbtract;
 using Backend_API.Constans;
+using Backend_API.Data;
 using Backend_API.Data.Entities.Identity;
 using Backend_API.Models.Auth;
 using Backend_API.Services;
@@ -27,21 +28,29 @@ namespace Backend_API.Controllers
         private readonly UserManager<UserEntity> _userManager;
         private readonly IJwtTokenService _jwtTokenService;
         private readonly IMapper _mapper;
-        public AuthController(UserManager<UserEntity> userManager, IJwtTokenService jwtTokenService, IMapper mapper)
+        private readonly AppEFContext _appEFContext;
+        public AuthController(UserManager<UserEntity> userManager, IJwtTokenService jwtTokenService, IMapper mapper, AppEFContext appEFContext)
         {
             _userManager = userManager;
             _jwtTokenService = jwtTokenService;
             _mapper = mapper;
+            _appEFContext = appEFContext;
         }
         [HttpGet("{id}")]
-        public async Task<IActionResult> Get(int id)
+        public async Task<IActionResult> Get(int id, int? ForUser)
         {
             var user = await _userManager.Users.SingleOrDefaultAsync(u => u.Id == id);
 
             if(user != null)
             {
                 var res = _mapper.Map<UserViewModel>(user);
-
+                if(ForUser != null)
+                {
+                    var followed = _appEFContext.Follows.SingleOrDefaultAsync(f => f.FollowerId == ForUser && f.UserId == id);
+                    if (followed != null)
+                        res.IsFollowed = true;
+                }
+                
                 return Ok(res);
             }
                 

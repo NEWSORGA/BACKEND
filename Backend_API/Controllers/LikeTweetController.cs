@@ -58,16 +58,21 @@ namespace ASP_API.Controllers
                     TweetId = id,
                     UserId = user.Id
                 };
-                _appEFContext.AddAsync(like);
-                _appEFContext.SaveChangesAsync();
+                user.Likes++;
+
+                await _appEFContext.AddAsync(like);
+                await _userManager.UpdateAsync(user);
+                await _appEFContext.SaveChangesAsync();
 
 
                 return Ok("Liked");
             }
             else
             {
+                user.Likes--;
                 _appEFContext.Remove(result);
-                _appEFContext.SaveChangesAsync();
+                await _userManager.UpdateAsync(user);
+                await _appEFContext.SaveChangesAsync();
                 return Ok("unLiked");
             }
             return BadRequest();

@@ -33,6 +33,10 @@
         public string Verified { get; set; }
         public string Country { get; set; }
         public string CountryCode { get; set; }
+        public int Followers { get; set; }
+        public int Following { get; set; }
+        public int Likes { get; set; }
+        public bool IsFollowed { get; set; }    
     }
 
     public class LoginViewModel
