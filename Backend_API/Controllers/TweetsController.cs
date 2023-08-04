@@ -82,7 +82,7 @@ namespace ASP_API.Controllers
         [HttpPost("CreateTweet")]
         public async Task<IActionResult> Post([FromForm] TweetCreateModel model)
         {
-            if ((model.TweetText == null || model.TweetText == "") && model.MediaIds.Length == 0 && model.RepostedId == null)
+            if ((model.TweetText == null || model.TweetText == "") && model.MediaIds == null && model.RepostedId == null)
                 return BadRequest("All fields are empty!");
             var email = User.FindFirst(ClaimTypes.Email).Value;
             var user = await _userManager.Users.SingleOrDefaultAsync(u => u.Email == email);
@@ -203,13 +203,20 @@ namespace ASP_API.Controllers
         }
 
         // DELETE api/<TweetsController>/5
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
+            var email = User.FindFirst(ClaimTypes.Email).Value;
+            var user = await _userManager.Users.SingleOrDefaultAsync(u => u.Email == email);
+
             var tweet = await _appEFContext.Tweets.SingleOrDefaultAsync(s => s.Id == id);
             var medias = await _appEFContext.TweetsMedias.Where(s => s.TweetId == id).ToListAsync();
             var comments = await _appEFContext.Comments.Where(s => s.TweetId == id).ToListAsync();
             var likes = await _appEFContext.TweetsLikes.Where(s => s.TweetId == id).ToListAsync();
+
+            if (user.Id != tweet.UserId)
+                return BadRequest("Its not your post!");
 
             foreach (var item in comments)
             {
@@ -229,7 +236,7 @@ namespace ASP_API.Controllers
             _appEFContext.Remove(tweet);
 
             await _appEFContext.SaveChangesAsync();
-            return Ok("Deleted " + id);
+            return Ok("Deleted");
         }
     }
 }

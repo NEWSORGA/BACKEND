@@ -46,7 +46,7 @@ namespace Backend_API.Controllers
                 var res = _mapper.Map<UserViewModel>(user);
                 if(ForUser != null)
                 {
-                    var followed = _appEFContext.Follows.SingleOrDefaultAsync(f => f.FollowerId == ForUser && f.UserId == id);
+                    var followed = await _appEFContext.Follows.SingleOrDefaultAsync(f => f.FollowerId == ForUser && f.UserId == id);
                     if (followed != null)
                         res.IsFollowed = true;
                 }
