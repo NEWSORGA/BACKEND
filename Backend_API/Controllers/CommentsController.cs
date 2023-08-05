@@ -4,13 +4,13 @@ using ASP_API.Models.Comments;
 using AutoMapper;
 using Backend_API.Data;
 using Backend_API.Data.Entities;
+using IronSoftware.Drawing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Drawing;
 
 namespace ASP_API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class CommentsController : Controller
     {
@@ -69,13 +69,13 @@ namespace ASP_API.Controllers
                 using (var ms = new MemoryStream())
                 {
                     await model.Media.CopyToAsync(ms);
-                    var bmp = new Bitmap(System.Drawing.Image.FromStream(ms));
+                    var bmp = new AnyBitmap(AnyBitmap.FromStream(ms).GetBytes());
                     string[] sizes = ((string)_configuration.GetValue<string>("ImageSizes")).Split(" ");
                     foreach (var s in sizes)
                     {
                         int size = Convert.ToInt32(s);
-                        var saveImage = ImageWorker.CompressImage(bmp, size, size, false);
-                        saveImage.Save(Path.Combine(dirSave, s + "_" + imageName));
+                        NetVips.Image saveImage = ImageWorker.CompressImage(bmp, size, size, false);
+                        saveImage.WriteToFile(Path.Combine(dirSave, s + "_" + imageName));
                     }
                 }
                 var entity = new CommentMediaEntity();

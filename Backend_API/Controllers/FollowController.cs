@@ -13,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ASP_API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class FollowController : Controller
     {

@@ -96,20 +96,20 @@ namespace ASP_API.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("FollowedId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("FollowerId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("FollowedId");
-
                     b.HasIndex("FollowerId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("follows");
                 });
@@ -478,21 +478,21 @@ namespace ASP_API.Migrations
 
             modelBuilder.Entity("Backend_API.Data.Entities.FollowEntity", b =>
                 {
-                    b.HasOne("Backend_API.Data.Entities.Identity.UserEntity", "Followed")
-                        .WithMany()
-                        .HasForeignKey("FollowedId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Backend_API.Data.Entities.Identity.UserEntity", "Follower")
                         .WithMany()
                         .HasForeignKey("FollowerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Followed");
+                    b.HasOne("Backend_API.Data.Entities.Identity.UserEntity", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Follower");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Backend_API.Data.Entities.Identity.UserRoleEntity", b =>

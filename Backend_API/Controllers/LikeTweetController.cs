@@ -13,7 +13,7 @@ using Backend_API.Data.Entities.Identity;
 
 namespace ASP_API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class LikeTweetController : Controller
     {

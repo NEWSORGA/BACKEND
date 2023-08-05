@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
-using System.Drawing;
+using IronSoftware.Drawing;
 using System.IO;
 using System.Security.Claims;
 using static System.Net.Mime.MediaTypeNames;
@@ -22,7 +22,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace ASP_API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class TweetsController : ControllerBase
     {
@@ -121,35 +121,44 @@ namespace ASP_API.Controllers
         [HttpPost("uploadMedia")]
         public async Task<IActionResult> UploadMedia([FromForm] TweetUploadImageModel model)
         {
-            //fdasfsdfsafssssssss
-            string imageName = string.Empty;
-            if (model.Media != null)
+            try
             {
-                var fileExp = Path.GetExtension(model.Media.FileName);
-                var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images");
-                imageName = Path.GetRandomFileName() + fileExp;
-                using (var ms = new MemoryStream())
+                //fdasfsdfsafssssssss
+                string imageName = string.Empty;
+                if (model.Media != null)
                 {
-                    await model.Media.CopyToAsync(ms);
-                    var bmp = new Bitmap(System.Drawing.Image.FromStream(ms));
-                    string[] sizes = ((string)_configuration.GetValue<string>("ImageSizes")).Split(" ");
-                    foreach (var s in sizes)
+                    var fileExp = Path.GetExtension(model.Media.FileName);
+                    var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images");
+                    imageName = Path.GetRandomFileName() + fileExp;
+                    using (var ms = new MemoryStream())
                     {
-                        int size = Convert.ToInt32(s);
-                        var saveImage = ImageWorker.CompressImage(bmp, size, size, false);
-                        saveImage.Save(Path.Combine(dirSave, s + "_" + imageName));
+                        await model.Media.CopyToAsync(ms);
+                        var bmp = new AnyBitmap(AnyBitmap.FromStream(ms).GetBytes());
+                        string[] sizes = ((string)_configuration.GetValue<string>("ImageSizes")).Split(" ");
+                        foreach (var s in sizes)
+                        {
+                            int size = Convert.ToInt32(s);
+                            NetVips.Image saveImage = ImageWorker.CompressImage(bmp, size, size, false);
+                            saveImage.WriteToFile(Path.Combine(dirSave, s + "_" + imageName));
+                          
+                        }
                     }
+                    var entity = new TweetMediaEnitity();
+                    entity.Path = imageName;
+                    entity.CreatedAt = DateTime.UtcNow;
+
+                    _appEFContext.TweetsMedias.Add(entity);
+                    _appEFContext.SaveChanges();
+                    return Ok(_mapper.Map<TweetViewImageModel>(entity));
+
                 }
-                var entity = new TweetMediaEnitity();
-                entity.Path = imageName;
-                entity.CreatedAt = DateTime.UtcNow;
-
-                _appEFContext.TweetsMedias.Add(entity);
-                _appEFContext.SaveChanges();
-                return Ok(_mapper.Map<TweetViewImageModel>(entity));
-
+                return BadRequest();
             }
-            return BadRequest();
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            
         }
 
         [HttpDelete("deleteMedia")]
