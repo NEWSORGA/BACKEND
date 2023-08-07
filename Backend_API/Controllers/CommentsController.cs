@@ -25,6 +25,19 @@ namespace ASP_API.Controllers
             _configuration = configuration;
             _mapper = mapper;
         }
+        [HttpGet()]
+        public async Task<IActionResult> Get(int thoughtId)
+        {
+            var res = await _appEFContext.Comments
+                .Include(c => c.User)
+                .Include(c => c.CommentParent)
+                .Where(c => c.TweetId == thoughtId)
+                .ToListAsync();
+
+            return Ok(res);
+
+        }
+
 
         [HttpPost("CreateComment")]
         public async Task<IActionResult> Post([FromForm] CommentsCreateViewModel model)
