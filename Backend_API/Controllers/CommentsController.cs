@@ -28,16 +28,47 @@ namespace ASP_API.Controllers
         [HttpGet()]
         public async Task<IActionResult> Get(int thoughtId)
         {
-            var res = await _appEFContext.Comments
-                .Include(c => c.User)
-                .Include(c => c.CommentParent)
-                .Where(c => c.TweetId == thoughtId)
-                .ToListAsync();
+            //var res = await _appEFContext.Comments
+            //    //.Include(c => c.User)
+            //    .Include(c => c.CommentParent)
+            //    .Where(c => c.TweetId == thoughtId)
+            //    .ToListAsync();
+            var result = await GetCommentsWithChildren();
+                //await _appEFContext.Comments.Include(c=>c.CommentsChildren).Where(x=>x.CommentParentId == null).Select(x => _mapper.Map<CommentsGetViewModel>(x)).ToListAsync();
 
-            return Ok(res);
+            return Ok(result);
 
         }
 
+        public async Task<List<CommentsGetViewModel>> GetCommentsWithChildren(int? parentCommentId = null)
+        {
+            var comments = await _appEFContext.Comments
+                .Where(c => c.CommentParentId == parentCommentId)
+                .ToListAsync();
+
+            var commentsWithChildren = new List<CommentsGetViewModel>();
+
+            foreach (var comment in comments)
+            {
+                var commentViewModel = new CommentsGetViewModel
+                {
+                    // Заповнюємо дані з коментаря, які не змінюються
+                    Id = comment.Id,
+                    CommentText = comment.CommentText,
+                    UserId = comment.UserId,
+                    CreatedAt = comment.CreatedAt,
+                    CreatedAtStr = HelperFunctions.ConvertDateTimeToStr(comment.CreatedAt),
+                    CommentParentId = comment.CommentParentId,
+                    Images = await _appEFContext.CommentsMedias.Where(x => x.CommentId == comment.Id).Select(x => _mapper.Map<CommentsViewImageModel>(x)).ToListAsync(),
+                    // Рекурсивно заповнюємо дочірні коментарі
+                    CommentsChild = await GetCommentsWithChildren(comment.Id)
+                };
+
+                commentsWithChildren.Add(commentViewModel);
+            }
+
+            return commentsWithChildren;
+        }
 
         [HttpPost("CreateComment")]
         public async Task<IActionResult> Post([FromForm] CommentsCreateViewModel model)
@@ -55,15 +86,17 @@ namespace ASP_API.Controllers
 
                 _appEFContext.Add(comment);
                 _appEFContext.SaveChanges();
-
-                foreach (var idImg in model.ImagesID)
+                if (model.ImagesID != null)
                 {
-                    var image = await _appEFContext.CommentsMedias.SingleOrDefaultAsync(x => x.Id == idImg);
-                    if(image != null)
-                       image.CommentId = comment.Id;
-                }
+                    foreach (var idImg in model.ImagesID)
+                    {
+                        var image = await _appEFContext.CommentsMedias.SingleOrDefaultAsync(x => x.Id == idImg);
+                        if (image != null)
+                            image.CommentId = comment.Id;
+                    }
 
-                _appEFContext.SaveChanges();
+                    _appEFContext.SaveChanges();
+                }
                 return Ok(comment);
             }
             return BadRequest(404);
