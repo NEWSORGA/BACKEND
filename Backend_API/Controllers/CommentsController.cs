@@ -4,9 +4,12 @@ using ASP_API.Models.Comments;
 using AutoMapper;
 using Backend_API.Data;
 using Backend_API.Data.Entities;
+using Backend_API.Data.Entities.Identity;
 using IronSoftware.Drawing;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace ASP_API.Controllers
 {
@@ -18,23 +21,34 @@ namespace ASP_API.Controllers
         private readonly AppEFContext _appEFContext;
         private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
-        public CommentsController(AppEFContext appEFContext, IConfiguration configuration, IMapper mapper, IWebHostEnvironment hostEnvironment)
+        private readonly UserManager<UserEntity> _userManager;
+        public CommentsController(AppEFContext appEFContext, IConfiguration configuration, IMapper mapper, IWebHostEnvironment hostEnvironment, UserManager<UserEntity> userManager)
         {
             _hostingEnvironment = hostEnvironment;
             _appEFContext = appEFContext;
             _configuration = configuration;
             _mapper = mapper;
+            _userManager = userManager;
         }
-        [HttpGet()]
+        [HttpGet("{thoughtId}")]
         public async Task<IActionResult> Get(int thoughtId)
         {
-            var res = await _appEFContext.Comments
-                .Include(c => c.User)
-                .Include(c => c.CommentParent)
-                .Where(c => c.TweetId == thoughtId)
+            var models = await _appEFContext.Comments
+                .Where(s => s.TweetId == thoughtId)
+                .Include(x => x.User)
+                .Include(x => x.CommentParent)
+                .OrderByDescending(x => x.CreatedAt)
                 .ToListAsync();
 
-            return Ok(res);
+            //models.Sort((x, y) => DateTime.Compare(x.PostTime, y.PostTime));
+            List<CommentViewModel> tweets = new List<CommentViewModel>();
+
+            foreach (CommentEntity item in models)
+            {
+                tweets.Add(HelperFunctions.ConvertCommentToModel(item, _appEFContext, _mapper));
+            }
+
+            return Ok(tweets);
 
         }
 
@@ -42,6 +56,9 @@ namespace ASP_API.Controllers
         [HttpPost("CreateComment")]
         public async Task<IActionResult> Post([FromForm] CommentsCreateViewModel model)
         {
+            var email = User.FindFirst(ClaimTypes.Email).Value;
+            var user = await _userManager.Users.SingleOrDefaultAsync(u => u.Email == email);
+
             if (model.CommentText != null)
             {
                 var comment = new CommentEntity
@@ -49,18 +66,21 @@ namespace ASP_API.Controllers
                     CommentText = model.CommentText,
                     CreatedAt = DateTime.UtcNow,
                     CommentParentId = model.CommentParentId,
-                    UserId = model.UserId,
+                    UserId = user.Id,
                     TweetId = model.TweetId,
                 };
 
                 _appEFContext.Add(comment);
                 _appEFContext.SaveChanges();
 
-                foreach (var idImg in model.ImagesID)
+                if (model.MediaIds != null)
                 {
-                    var image = await _appEFContext.CommentsMedias.SingleOrDefaultAsync(x => x.Id == idImg);
-                    if(image != null)
-                       image.CommentId = comment.Id;
+                    foreach (var idImg in model.MediaIds)
+                    {
+                        var image = await _appEFContext.CommentsMedias.SingleOrDefaultAsync(x => x.Id == idImg);
+                        if (image != null)
+                            image.CommentId = comment.Id;
+                    }
                 }
 
                 _appEFContext.SaveChanges();

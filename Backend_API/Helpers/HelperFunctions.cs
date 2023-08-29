@@ -6,6 +6,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
+using ASP_API.Models.Comments;
 
 namespace ASP_API.Helpers
 {
@@ -64,7 +65,24 @@ namespace ASP_API.Helpers
 
             return tweetModel;
         }
-      
+        public static CommentViewModel ConvertCommentToModel(CommentEntity comment, AppEFContext _appEFContext, IMapper _mapper)
+        {
+
+            CommentViewModel commentModel = new CommentViewModel
+            {
+                Id = comment.Id,
+                CommentText = comment.CommentText,
+                Medias = _appEFContext.CommentsMedias.Where(m => m.CommentId == comment.Id).Select(m => _mapper.Map<CommentsViewImageModel>(m)).ToList(),
+                User = _mapper.Map<UserViewModel>(comment.User),
+                Parent = comment.CommentParent == null ? null : ConvertCommentToModel(comment.CommentParent, _appEFContext, _mapper),
+                ThoughtId = comment.TweetId,
+                CreatedAt = comment.CreatedAt,
+                CreatedAtStr = ConvertDateTimeToStr(comment.CreatedAt)
+            };
+
+            return commentModel;
+        }
+
         public static async Task<TweetViewModel> ConvertToModel2(TweetEntity tweet, int? UserId, AppEFContext _appEFContext, IMapper _mapper)
         {
             var likesCount = await _appEFContext.TweetsLikes.Where(l => l.TweetId == tweet.Id).ToListAsync();

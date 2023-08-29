@@ -13,6 +13,7 @@ namespace ASP_API.Mapper
         public AppMapProfile()
         {
             CreateMap<TweetMediaEnitity, TweetViewImageModel>();
+            CreateMap<CommentMediaEntity, CommentsViewImageModel>();
             CreateMap<LikeTweetViewModel, TweetLikeEntity>();
             CreateMap<CommentMediaEntity, CommentsViewImageModel>();
             CreateMap<UserEntity, UserViewModel>().ForMember(s => s.IsFollowed, opt => opt.MapFrom(s => false));
