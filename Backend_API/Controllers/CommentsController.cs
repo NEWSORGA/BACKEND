@@ -52,6 +52,8 @@ namespace ASP_API.Controllers
 
         }
 
+            return commentsWithChildren;
+        }
 
         [HttpPost("CreateComment")]
         public async Task<IActionResult> Post([FromForm] CommentsCreateViewModel model)
@@ -83,7 +85,8 @@ namespace ASP_API.Controllers
                     }
                 }
 
-                _appEFContext.SaveChanges();
+                    _appEFContext.SaveChanges();
+                }
                 return Ok(comment);
             }
             return BadRequest(404);

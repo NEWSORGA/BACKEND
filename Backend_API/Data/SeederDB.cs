@@ -15,7 +15,7 @@ namespace Backend_API.Data
                 var context = service.GetRequiredService<AppEFContext>();
                 var userNamager = service.GetRequiredService<UserManager<UserEntity>>();
                 var roleNamager = service.GetRequiredService<RoleManager<RoleEntity>>();
-                context.Database.Migrate(); //автоматично запускає міграції на БД
+               // context.Database.Migrate(); //автоматично запускає міграції на БД
 
 
                 if (!context.Roles.Any())

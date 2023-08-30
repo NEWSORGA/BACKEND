@@ -12,6 +12,19 @@ namespace ASP_API.Helpers
 {
     public class HelperFunctions
     {
+        private readonly AppEFContext _appEFContext;
+        private readonly IMapper _mapper;
+        public HelperFunctions(AppEFContext appEFContext, IMapper mapper)
+        {
+            _appEFContext = appEFContext;
+            _mapper = mapper;
+        }
+        public List<CommentsGetViewModel> GetChildComments(int parentId)
+        {
+            var result = _appEFContext.Comments.Where(x => x.CommentParentId == parentId).Select(x => _mapper.Map<CommentsGetViewModel>(x)).ToList();
+
+            return result;
+        }
 
         public static string ConvertDateTimeToStr(DateTime dt)
         {
