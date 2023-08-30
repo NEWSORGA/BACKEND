@@ -5,6 +5,7 @@ using AutoMapper;
 using Backend_API.Data;
 using Backend_API.Data.Entities;
 using Backend_API.Data.Entities.Identity;
+using Backend_API.Models.Auth;
 using IronSoftware.Drawing;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -33,27 +34,13 @@ namespace ASP_API.Controllers
         [HttpGet("{thoughtId}")]
         public async Task<IActionResult> Get(int thoughtId)
         {
-            var models = await _appEFContext.Comments
-                .Where(s => s.TweetId == thoughtId)
-                .Include(x => x.User)
-                .Include(x => x.CommentParent)
-                .OrderByDescending(x => x.CreatedAt)
-                .ToListAsync();
+            var result = HelperFunctions.GetCommentsWithChildren(null, thoughtId, _appEFContext, _mapper);
 
-            //models.Sort((x, y) => DateTime.Compare(x.PostTime, y.PostTime));
-            List<CommentViewModel> tweets = new List<CommentViewModel>();
-
-            foreach (CommentEntity item in models)
-            {
-                tweets.Add(HelperFunctions.ConvertCommentToModel(item, _appEFContext, _mapper));
-            }
-
-            return Ok(tweets);
+            return Ok(result);
 
         }
 
-            return commentsWithChildren;
-        }
+        
 
         [HttpPost("CreateComment")]
         public async Task<IActionResult> Post([FromForm] CommentsCreateViewModel model)
@@ -86,7 +73,6 @@ namespace ASP_API.Controllers
                 }
 
                     _appEFContext.SaveChanges();
-                }
                 return Ok(comment);
             }
             return BadRequest(404);

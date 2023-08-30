@@ -42,7 +42,7 @@ namespace ASP_API.Models.Comments
         public List<CommentsViewImageModel>? Medias { get; set; }
         public UserViewModel User { get; set; }
         public int ThoughtId { get; set; }
-        public CommentViewModel? Parent { get; set; }
+        public List<CommentViewModel>? Children { get; set; }
         //public bool Liked { get; set; }
         //public int LikesCount { get; set; }
         //public bool Retweeted { get; set; }

@@ -78,22 +78,49 @@ namespace ASP_API.Helpers
 
             return tweetModel;
         }
-        public static CommentViewModel ConvertCommentToModel(CommentEntity comment, AppEFContext _appEFContext, IMapper _mapper)
+
+        public static List<CommentViewModel> GetCommentsWithChildren(int? parentCommentId, int? thoughtId, AppEFContext _appEFContext, IMapper _mapper)
         {
-
-            CommentViewModel commentModel = new CommentViewModel
+            var comments = new List<CommentEntity>();
+            if (thoughtId != null)
             {
-                Id = comment.Id,
-                CommentText = comment.CommentText,
-                Medias = _appEFContext.CommentsMedias.Where(m => m.CommentId == comment.Id).Select(m => _mapper.Map<CommentsViewImageModel>(m)).ToList(),
-                User = _mapper.Map<UserViewModel>(comment.User),
-                Parent = comment.CommentParent == null ? null : ConvertCommentToModel(comment.CommentParent, _appEFContext, _mapper),
-                ThoughtId = comment.TweetId,
-                CreatedAt = comment.CreatedAt,
-                CreatedAtStr = ConvertDateTimeToStr(comment.CreatedAt)
-            };
+                comments = _appEFContext.Comments
+                    .Include(c => c.User)
+                    .Where(c => c.TweetId == thoughtId && c.CommentParentId == null)
+                    .OrderByDescending(c => c.CreatedAt)
+                    .ToList();
+            }
+            else
+            {
+                comments = _appEFContext.Comments
+                    .Include(c => c.User)
+                    .Where(c => c.CommentParentId == parentCommentId)
+                    .OrderByDescending(c => c.CreatedAt)
+                    .ToList();
+            }
 
-            return commentModel;
+            var commentsWithChildren = new List<CommentViewModel>();
+
+            foreach (var comment in comments)
+            {
+                var commentModel = new CommentViewModel
+                {
+                    // Заповнюємо дані з коментаря, які не змінюються
+
+                    Id = comment.Id,
+                    CommentText = comment.CommentText,
+                    Medias = _appEFContext.CommentsMedias.Where(m => m.CommentId == comment.Id).Select(m => _mapper.Map<CommentsViewImageModel>(m)).ToList(),
+                    User = _mapper.Map<UserViewModel>(comment.User),
+                    ThoughtId = comment.TweetId,
+                    CreatedAt = comment.CreatedAt,
+                    CreatedAtStr = HelperFunctions.ConvertDateTimeToStr(comment.CreatedAt),
+                    Children = GetCommentsWithChildren(comment.Id, null, _appEFContext, _mapper)
+                };
+
+                commentsWithChildren.Add(commentModel);
+            }
+
+            return commentsWithChildren;
         }
 
         public static async Task<TweetViewModel> ConvertToModel2(TweetEntity tweet, int? UserId, AppEFContext _appEFContext, IMapper _mapper)
