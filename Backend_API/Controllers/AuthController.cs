@@ -43,7 +43,10 @@ namespace Backend_API.Controllers
             if(user != null)
             {
                 var res = _mapper.Map<UserViewModel>(user);
-                if(ForUser != null)
+                res.Followers = _appEFContext.Follows.Where(f => f.UserId == id).ToList().Count;
+                res.Following = _appEFContext.Follows.Where(f => f.FollowerId == id).ToList().Count;
+                res.Likes = _appEFContext.TweetsLikes.Include(f => f.Tweet).Where(f => f.Tweet.UserId == id).ToList().Count;
+                if (ForUser != null)
                 {
                     var followed = await _appEFContext.Follows.SingleOrDefaultAsync(f => f.FollowerId == ForUser && f.UserId == id);
                     if (followed != null)
@@ -54,6 +57,14 @@ namespace Backend_API.Controllers
             }
                 
             return BadRequest("User not found!");
+        }
+
+        [HttpGet("searchUser")]
+        public async Task<IActionResult> SearchUser([FromQuery] string filterText)
+        {
+            var user = await _appEFContext.Users.Where(u => u.Name.Contains(filterText)).ToListAsync();
+
+            return Ok(user);
         }
         // POST api/<AuthController>
         [HttpPost("create")]

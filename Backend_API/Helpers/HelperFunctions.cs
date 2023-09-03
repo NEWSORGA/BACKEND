@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using ASP_API.Models.Comments;
 using System.Xml.Linq;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using SixLabors.ImageSharp;
 
 namespace ASP_API.Helpers
 {
@@ -136,6 +137,39 @@ namespace ASP_API.Helpers
             }
             return commentsWithChildren;
         }
+        public static void DeleteComment(CommentEntity delComment, AppEFContext _appEFContext, IMapper _mapper, IWebHostEnvironment _hostingEnvironment, IConfiguration _configuration)
+        {
+            var image = _appEFContext.CommentsMedias.Where(x => x.CommentId == delComment.Id).ToList();
+
+            if (image != null)
+            {
+
+                var dirSave = Path.Combine(_hostingEnvironment.ContentRootPath, "images");
+                string[] sizes = ((string)_configuration.GetValue<string>("ImageSizes")).Split(" ");
+                foreach (var i in image)
+                {
+                    foreach (var s in sizes)
+                    {
+                        var imgDelete = Path.Combine(dirSave, s + "_" + i.Path);
+                        if (System.IO.File.Exists(imgDelete))
+                        {
+                            System.IO.File.Delete(imgDelete);
+                        }
+                    }
+                    _appEFContext.CommentsMedias.Remove(i);
+                    _appEFContext.SaveChanges();
+                }
+            }
+            var children = _appEFContext.Comments.Where(c => c.CommentParentId == delComment.Id || c.ReplyToId == delComment.Id).ToList();
+
+            foreach(var child in children)
+            {
+                DeleteComment(child, _appEFContext, _mapper, _hostingEnvironment, _configuration);
+            }
+            _appEFContext.Comments.Remove(delComment);
+            _appEFContext.SaveChanges();
+        }
+
 
         //public static List<CommentViewModel> GetCommentsWithChildren(int thoughtId, AppEFContext _appEFContext, IMapper _mapper)
         //{

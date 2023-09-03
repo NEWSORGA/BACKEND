@@ -56,4 +56,9 @@
     {
         public IFormFile BackgroundImage { get; set; }
     }
+    public class SearchUser
+    {
+        public string FilterText { get; set; }
+    }
+
 }

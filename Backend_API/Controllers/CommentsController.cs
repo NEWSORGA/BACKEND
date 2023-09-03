@@ -7,6 +7,7 @@ using Backend_API.Data.Entities;
 using Backend_API.Data.Entities.Identity;
 using Backend_API.Models.Auth;
 using IronSoftware.Drawing;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -72,8 +73,8 @@ namespace ASP_API.Controllers
 
         }
 
-        
 
+        [Authorize]
         [HttpPost("CreateComment")]
         public async Task<IActionResult> Post([FromForm] CommentsCreateViewModel model)
         {
@@ -112,7 +113,7 @@ namespace ASP_API.Controllers
             }
             return BadRequest(404);
         }
-
+        [Authorize]
         [HttpPost("ReplyComment")]
         public async Task<IActionResult> ReplyToComment([FromForm] CommentReplyCreateViewModel model)
         {
@@ -151,7 +152,7 @@ namespace ASP_API.Controllers
             }
             return BadRequest(404);
         }
-
+        [Authorize]
         [HttpPost("uploadMedia")]
         public async Task<IActionResult> UploadMedia([FromForm] CommentsUploadImageModel model)
         {
@@ -185,33 +186,20 @@ namespace ASP_API.Controllers
             }
             return BadRequest();
         }
-
+        [Authorize]
         [HttpDelete("RemoveComment/{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var image = _appEFContext.CommentsMedias.Where(x => x.Id == id).ToList();
+            var email = User.FindFirst(ClaimTypes.Email).Value;
+            var user = await _userManager.Users.SingleOrDefaultAsync(u => u.Email == email);
 
-            if (image != null)
+            var comment = await _appEFContext.Comments.SingleOrDefaultAsync(c => c.Id == id);
+            if(comment.UserId == user.Id)
             {
-
-                var dirSave = Path.Combine(_hostingEnvironment.ContentRootPath, "images");
-                string[] sizes = ((string)_configuration.GetValue<string>("ImageSizes")).Split(" ");
-                foreach (var i in image)
-                {
-                    foreach (var s in sizes)
-                    {
-                        var imgDelete = Path.Combine(dirSave, s + "_" + i.Path);
-                        if (System.IO.File.Exists(imgDelete))
-                        {
-                            System.IO.File.Delete(imgDelete);
-                        }
-                    }
-                    _appEFContext.CommentsMedias.Remove(i);
-                    await _appEFContext.SaveChangesAsync();
-                }
+                HelperFunctions.DeleteComment(comment, _appEFContext, _mapper, _hostingEnvironment, _configuration);
             }
-            _appEFContext.Comments.Remove(_appEFContext.Comments.SingleOrDefault(x => x.Id == id));
-            await _appEFContext.SaveChangesAsync();
+
+            
             return Ok();
         }
 
