@@ -1,4 +1,6 @@
-﻿using Backend_API.Models.Auth;
+﻿using Backend_API.Data.Entities;
+using Backend_API.Models.Auth;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ASP_API.Models.Comments
 {
@@ -7,9 +9,15 @@ namespace ASP_API.Models.Comments
         public string CommentText { get; set; }
         public int TweetId { get; set; }
         public List<int>? MediaIds { get; set; }
+    }
+    public class CommentReplyCreateViewModel
+    {
+        public string CommentText { get; set; }
+        public int TweetId { get; set; }
+        public int? ReplyToId { get; set; }
         public int? CommentParentId { get; set; }
-        public DateTime? PostTime { get; set; }
-        public string TimeZone { get; set; }
+        public List<int>? MediaIds { get; set; }
+        public bool ReplyToChild { get; set; }
     }
 
     public class CommentsGetViewModel
@@ -42,6 +50,12 @@ namespace ASP_API.Models.Comments
         public List<CommentsViewImageModel>? Medias { get; set; }
         public UserViewModel User { get; set; }
         public int ThoughtId { get; set; }
+        public int? CommentParentId { get; set; }
+        public bool IsComment { get; set; }
+        public bool IsReply { get; set; }
+        [ForeignKey("ReplyTo")]
+        public int? ReplyToId { get; set; }
+        public CommentViewModel? ReplyTo { get; set; }
         public List<CommentViewModel>? Children { get; set; }
         //public bool Liked { get; set; }
         //public int LikesCount { get; set; }

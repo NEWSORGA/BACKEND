@@ -1,4 +1,5 @@
 ﻿using Backend_API.Data.Entities.Identity;
+using Backend_API.Models.Auth;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend_API.Data.Entities
@@ -16,9 +17,16 @@ namespace Backend_API.Data.Entities
         public int UserId { get; set; }
         public virtual UserEntity User { get; set; }
 
-        [ForeignKey("CommentParent")]
+        [ForeignKey("CommentParentId")]
         public int? CommentParentId { get; set; }
-        public virtual CommentEntity? CommentParent { get; set; }
+
+
+        public bool IsComment { get; set; }
+        public bool IsReply { get; set; }
+
+        [ForeignKey("ReplyTo")]
+        public int? ReplyToId { get; set; }
+        public virtual CommentEntity? ReplyTo { get; set; }
 
         public virtual List<CommentEntity>? CommentsChildren { get; set; }
         public virtual List<CommentMediaEntity>? CommentsMedia { get; set; }

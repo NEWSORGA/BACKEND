@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using ASP_API.Models.Comments;
+using System.Xml.Linq;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace ASP_API.Helpers
 {
@@ -78,50 +80,100 @@ namespace ASP_API.Helpers
 
             return tweetModel;
         }
-
-        public static List<CommentViewModel> GetCommentsWithChildren(int? parentCommentId, int? thoughtId, AppEFContext _appEFContext, IMapper _mapper)
+        public static CommentViewModel CommentEntityToViewModel(CommentEntity comment, AppEFContext _appEFContext, IMapper _mapper)
         {
-            var comments = new List<CommentEntity>();
-            if (thoughtId != null)
+            var commentRes = new CommentViewModel()
             {
-                comments = _appEFContext.Comments
+                Id = comment.Id,
+                CommentText = comment.CommentText,
+                Medias = _appEFContext.CommentsMedias.Where(m => m.CommentId == comment.Id).Select(m => _mapper.Map<CommentsViewImageModel>(m)).ToList(),
+                User = _mapper.Map<UserViewModel>(comment.User),
+                ThoughtId = comment.TweetId,
+                CreatedAt = comment.CreatedAt,
+                CreatedAtStr = HelperFunctions.ConvertDateTimeToStr(comment.CreatedAt),
+                Children = null,
+                IsComment = comment.IsComment,
+                IsReply = comment.IsReply,
+                ReplyTo = comment.ReplyTo == null ? null : CommentEntityToViewModel(comment.ReplyTo, _appEFContext, _mapper),
+                ReplyToId = comment.ReplyToId
+            };
+            return commentRes;
+        }
+        public static List<CommentViewModel> GetCommentChildren(int commentId, AppEFContext _appEFContext, IMapper _mapper)
+        {
+            var children = _appEFContext.Comments
                     .Include(c => c.User)
-                    .Where(c => c.TweetId == thoughtId && c.CommentParentId == null)
-                    .OrderByDescending(c => c.CreatedAt)
+                    .Include(c => c.CommentsChildren)
+                    .Include(c => c.ReplyTo)
+                    .Where(c => c.CommentParentId == commentId)
+                    .OrderBy(c => c.CreatedAt)
                     .ToList();
-            }
-            else
-            {
-                comments = _appEFContext.Comments
-                    .Include(c => c.User)
-                    .Where(c => c.CommentParentId == parentCommentId)
-                    .OrderByDescending(c => c.CreatedAt)
-                    .ToList();
-            }
 
             var commentsWithChildren = new List<CommentViewModel>();
 
-            foreach (var comment in comments)
+            foreach (var child in children)
             {
                 var commentModel = new CommentViewModel
                 {
                     // Заповнюємо дані з коментаря, які не змінюються
 
-                    Id = comment.Id,
-                    CommentText = comment.CommentText,
-                    Medias = _appEFContext.CommentsMedias.Where(m => m.CommentId == comment.Id).Select(m => _mapper.Map<CommentsViewImageModel>(m)).ToList(),
-                    User = _mapper.Map<UserViewModel>(comment.User),
-                    ThoughtId = comment.TweetId,
-                    CreatedAt = comment.CreatedAt,
-                    CreatedAtStr = HelperFunctions.ConvertDateTimeToStr(comment.CreatedAt),
-                    Children = GetCommentsWithChildren(comment.Id, null, _appEFContext, _mapper)
+                    Id = child.Id,
+                    CommentText = child.CommentText,
+                    Medias = _appEFContext.CommentsMedias.Where(m => m.CommentId == child.Id).Select(m => _mapper.Map<CommentsViewImageModel>(m)).ToList(),
+                    User = _mapper.Map<UserViewModel>(child.User),
+                    ThoughtId = child.TweetId,
+                    CommentParentId = child.CommentParentId,
+                    CreatedAt = child.CreatedAt,
+                    CreatedAtStr = HelperFunctions.ConvertDateTimeToStr(child.CreatedAt),
+                    Children = null,
+                    IsComment = child.IsComment,
+                    IsReply = child.IsReply,
+                    ReplyTo = child.ReplyTo == null ? null : CommentEntityToViewModel(child.ReplyTo, _appEFContext, _mapper),
+                    ReplyToId = child.ReplyToId
                 };
 
                 commentsWithChildren.Add(commentModel);
             }
-
             return commentsWithChildren;
         }
+
+        //public static List<CommentViewModel> GetCommentsWithChildren(int thoughtId, AppEFContext _appEFContext, IMapper _mapper)
+        //{
+        //    var comments = new List<CommentEntity>();
+
+        //        comments = _appEFContext.Comments
+        //            .Include(c => c.User)
+        //            .Where(c => c.TweetId == thoughtId && c.CommentParentId == null)
+        //            .OrderByDescending(c => c.CreatedAt)
+        //            .ToList();
+
+
+        //    var commentsWithChildren = new List<CommentViewModel>();
+
+        //    foreach (var comment in comments)
+        //    {
+        //        var commentModel = new CommentViewModel
+        //        {
+        //            // Заповнюємо дані з коментаря, які не змінюються
+
+        //            Id = comment.Id,
+        //            CommentText = comment.CommentText,
+        //            Medias = _appEFContext.CommentsMedias.Where(m => m.CommentId == comment.Id).Select(m => _mapper.Map<CommentsViewImageModel>(m)).ToList(),
+        //            User = _mapper.Map<UserViewModel>(comment.User),
+        //            ThoughtId = comment.TweetId,
+        //            CreatedAt = comment.CreatedAt,
+        //            CreatedAtStr = HelperFunctions.ConvertDateTimeToStr(comment.CreatedAt),
+        //            Children = GetCommentsWithChildren(comment.Id, null, _appEFContext, _mapper),
+        //            ParentId = comment.CommentParentId,
+        //            ParentUserId = comment.CommentParent == null ? null : comment.CommentParent.UserId,
+        //            ParentUserName = comment.CommentParent == null ? null : comment.CommentParent.User.Name
+        //        };
+
+        //        commentsWithChildren.Add(commentModel);
+        //    }
+
+        //    return commentsWithChildren;
+        //}
 
         public static async Task<TweetViewModel> ConvertToModel2(TweetEntity tweet, int? UserId, AppEFContext _appEFContext, IMapper _mapper)
         {

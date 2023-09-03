@@ -3,6 +3,7 @@ using System;
 using Backend_API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ASP_API.Migrations
 {
     [DbContext(typeof(AppEFContext))]
-    partial class AppEFContextModelSnapshot : ModelSnapshot
+    [Migration("20230831125158_replies")]
+    partial class replies
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,53 +24,6 @@ namespace ASP_API.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("Backend_API.Data.Entities.CommentEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("CommentParentId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("CommentText")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsComment")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsReply")
-                        .HasColumnType("boolean");
-
-                    b.Property<int?>("ReplyToId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("TweetId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ReplyToId");
-
-                    b.HasIndex("TweetId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("comments");
-                });
 
             modelBuilder.Entity("Backend_API.Data.Entities.CommentMediaEntity", b =>
                 {
@@ -88,8 +44,6 @@ namespace ASP_API.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CommentId");
 
                     b.ToTable("comments_media");
                 });
@@ -451,40 +405,6 @@ namespace ASP_API.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Backend_API.Data.Entities.CommentEntity", b =>
-                {
-                    b.HasOne("Backend_API.Data.Entities.CommentEntity", "ReplyTo")
-                        .WithMany("CommentsChildren")
-                        .HasForeignKey("ReplyToId");
-
-                    b.HasOne("Backend_API.Data.Entities.TweetEntity", "Tweet")
-                        .WithMany()
-                        .HasForeignKey("TweetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Backend_API.Data.Entities.Identity.UserEntity", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ReplyTo");
-
-                    b.Navigation("Tweet");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Backend_API.Data.Entities.CommentMediaEntity", b =>
-                {
-                    b.HasOne("Backend_API.Data.Entities.CommentEntity", "Comment")
-                        .WithMany("CommentsMedia")
-                        .HasForeignKey("CommentId");
-
-                    b.Navigation("Comment");
-                });
-
             modelBuilder.Entity("Backend_API.Data.Entities.FollowEntity", b =>
                 {
                     b.HasOne("Backend_API.Data.Entities.Identity.UserEntity", "Follower")
@@ -602,13 +522,6 @@ namespace ASP_API.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Backend_API.Data.Entities.CommentEntity", b =>
-                {
-                    b.Navigation("CommentsChildren");
-
-                    b.Navigation("CommentsMedia");
                 });
 
             modelBuilder.Entity("Backend_API.Data.Entities.Identity.RoleEntity", b =>

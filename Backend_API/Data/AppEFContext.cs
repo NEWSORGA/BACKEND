@@ -40,7 +40,7 @@ namespace Backend_API.Data
                     .HasForeignKey(u => u.UserId)
                     .IsRequired();
             });
-            
+
         }
     }
 }

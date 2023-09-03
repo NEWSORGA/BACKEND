@@ -34,9 +34,41 @@ namespace ASP_API.Controllers
         [HttpGet("{thoughtId}")]
         public async Task<IActionResult> Get(int thoughtId)
         {
-            var result = HelperFunctions.GetCommentsWithChildren(null, thoughtId, _appEFContext, _mapper);
+            var comments = _appEFContext.Comments
+                    .Include(c => c.User)
+                    .Include(c => c.CommentsChildren)
+                    .Include(c => c.ReplyTo)
+                    .Where(c => c.TweetId == thoughtId && c.CommentParentId == null && c.IsComment == true)
+                    .OrderBy(c => c.CreatedAt)
+                    .ToList();
 
-            return Ok(result);
+
+            var commentsWithChildren = new List<CommentViewModel>();
+
+            foreach (var comment in comments)
+            {
+                var commentModel = new CommentViewModel
+                {
+                    // Заповнюємо дані з коментаря, які не змінюються
+
+                    Id = comment.Id,
+                    CommentText = comment.CommentText,
+                    Medias = _appEFContext.CommentsMedias.Where(m => m.CommentId == comment.Id).Select(m => _mapper.Map<CommentsViewImageModel>(m)).ToList(),
+                    User = _mapper.Map<UserViewModel>(comment.User),
+                    ThoughtId = comment.TweetId,
+                    CommentParentId = comment.CommentParentId,
+                    CreatedAt = comment.CreatedAt,
+                    CreatedAtStr = HelperFunctions.ConvertDateTimeToStr(comment.CreatedAt),
+                    Children =  HelperFunctions.GetCommentChildren(comment.Id, _appEFContext, _mapper),
+                    IsComment = comment.IsComment,
+                    IsReply = comment.IsReply,
+                    ReplyTo = comment.ReplyTo == null ? null : HelperFunctions.CommentEntityToViewModel(comment.ReplyTo, _appEFContext, _mapper),
+                };
+
+                commentsWithChildren.Add(commentModel);
+            }
+
+            return Ok(commentsWithChildren);
 
         }
 
@@ -54,9 +86,12 @@ namespace ASP_API.Controllers
                 {
                     CommentText = model.CommentText,
                     CreatedAt = DateTime.UtcNow,
-                    CommentParentId = model.CommentParentId,
                     UserId = user.Id,
                     TweetId = model.TweetId,
+                    CommentParentId = null,
+                    IsComment = true,
+                    IsReply = false,
+                    ReplyToId = null,
                 };
 
                 _appEFContext.Add(comment);
@@ -77,7 +112,46 @@ namespace ASP_API.Controllers
             }
             return BadRequest(404);
         }
-        
+
+        [HttpPost("ReplyComment")]
+        public async Task<IActionResult> ReplyToComment([FromForm] CommentReplyCreateViewModel model)
+        {
+            var email = User.FindFirst(ClaimTypes.Email).Value;
+            var user = await _userManager.Users.SingleOrDefaultAsync(u => u.Email == email);
+
+            if (model.CommentText != null)
+            {
+                var comment = new CommentEntity
+                {
+                    CommentText = model.CommentText,
+                    CreatedAt = DateTime.UtcNow,
+                    UserId = user.Id,
+                    TweetId = model.TweetId,
+                    CommentParentId = model.CommentParentId != null ? model.CommentParentId : null,
+                    IsComment = false,
+                    IsReply = true,
+                    ReplyToId = model.ReplyToChild && model.ReplyToId != null ? model.ReplyToId : null,
+                };
+
+                _appEFContext.Add(comment);
+                _appEFContext.SaveChanges();
+
+                if (model.MediaIds != null)
+                {
+                    foreach (var idImg in model.MediaIds)
+                    {
+                        var image = await _appEFContext.CommentsMedias.SingleOrDefaultAsync(x => x.Id == idImg);
+                        if (image != null)
+                            image.CommentId = comment.Id;
+                    }
+                }
+
+                _appEFContext.SaveChanges();
+                return Ok(comment);
+            }
+            return BadRequest(404);
+        }
+
         [HttpPost("uploadMedia")]
         public async Task<IActionResult> UploadMedia([FromForm] CommentsUploadImageModel model)
         {
