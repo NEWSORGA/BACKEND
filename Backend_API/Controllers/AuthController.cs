@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Data;
 using System.Net;
+using System.Net.Mail;
 using System.Security.Claims;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -97,6 +98,9 @@ namespace Backend_API.Controllers
 
             return Ok(user);
         }
+
+        
+
         // POST api/<AuthController>
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromForm] CreateUserViewModel model)
@@ -287,6 +291,46 @@ namespace Backend_API.Controllers
 
                 token = await _jwtTokenService.CreateToken(user);
                 return Ok(new {token});
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+        [Authorize]
+        [HttpPost("sendReport")]
+        public async Task<IActionResult> sendReport(string message)
+        {
+            try
+            {
+                var email = User.FindFirst(ClaimTypes.Email).Value;
+                var user = await _userManager.Users.SingleOrDefaultAsync(u => u.Email == email);
+
+                var Admins = await _appEFContext.Users.Where(s => s.UserRoles.Where(r => r.Role.Name == "Admin").ToList().Count > 0 ? true : false).ToListAsync();
+
+                MailMessage mailMessage = new MailMessage();
+                mailMessage.From = new MailAddress("vladberestyt.gmail.com");
+                foreach(var item in Admins)
+                {
+                    mailMessage.To.Add(new MailAddress("vladixerplay.gmail.com"));
+                }
+               
+                mailMessage.Subject = "Report from " + user.Id + "-" + user.Name;
+                mailMessage.Body = "This is test email";
+
+                var smtpClient = new SmtpClient("smtp.gmail.com")
+                {
+                    Port = 587,
+                    Credentials = new NetworkCredential("vladberestyt.gmail.com", "2005vlad"),
+                    EnableSsl = true,
+                };
+
+                smtpClient.Send(mailMessage);
+
+                return Ok();
 
             }
             catch (Exception ex)

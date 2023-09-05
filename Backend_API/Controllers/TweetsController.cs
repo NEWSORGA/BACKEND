@@ -232,8 +232,9 @@ namespace ASP_API.Controllers
             var medias = await _appEFContext.TweetsMedias.Where(s => s.TweetId == id).ToListAsync();
             var comments = await _appEFContext.Comments.Where(s => s.TweetId == id).ToListAsync();
             var likes = await _appEFContext.TweetsLikes.Where(s => s.TweetId == id).ToListAsync();
+            var roles = await _userManager.GetRolesAsync(user);
 
-            if (user.Id != tweet.UserId)
+            if (user.Id != tweet.UserId && roles.Where(s => s == "Admin").FirstOrDefault() == null)
                 return BadRequest("Its not your post!");
 
             foreach (var item in comments)

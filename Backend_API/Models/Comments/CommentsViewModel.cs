@@ -6,13 +6,13 @@ namespace ASP_API.Models.Comments
 {
     public class CommentsCreateViewModel
     {
-        public string CommentText { get; set; }
+        public string? CommentText { get; set; }
         public int TweetId { get; set; }
         public List<int>? MediaIds { get; set; }
     }
     public class CommentReplyCreateViewModel
     {
-        public string CommentText { get; set; }
+        public string? CommentText { get; set; }
         public int TweetId { get; set; }
         public int? ReplyToId { get; set; }
         public int? CommentParentId { get; set; }
@@ -23,7 +23,7 @@ namespace ASP_API.Models.Comments
     public class CommentsGetViewModel
     {
         public int Id { get; set; }
-        public string CommentText { get; set; }
+        public string? CommentText { get; set; }
         public int TweetId { get; set; }
         public List<CommentsViewImageModel>? Images { get; set; }
         public int UserId { get; set; }

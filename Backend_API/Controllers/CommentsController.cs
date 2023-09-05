@@ -81,7 +81,7 @@ namespace ASP_API.Controllers
             var email = User.FindFirst(ClaimTypes.Email).Value;
             var user = await _userManager.Users.SingleOrDefaultAsync(u => u.Email == email);
 
-            if (model.CommentText != null)
+            if (model.CommentText != null || model.MediaIds != null)
             {
                 var comment = new CommentEntity
                 {
@@ -120,7 +120,7 @@ namespace ASP_API.Controllers
             var email = User.FindFirst(ClaimTypes.Email).Value;
             var user = await _userManager.Users.SingleOrDefaultAsync(u => u.Email == email);
 
-            if (model.CommentText != null)
+            if (model.CommentText != null || model.MediaIds != null)
             {
                 var comment = new CommentEntity
                 {
@@ -166,13 +166,21 @@ namespace ASP_API.Controllers
                 using (var ms = new MemoryStream())
                 {
                     await model.Media.CopyToAsync(ms);
-                    var bmp = new AnyBitmap(AnyBitmap.FromStream(ms).GetBytes());
-                    string[] sizes = ((string)_configuration.GetValue<string>("ImageSizes")).Split(" ");
-                    foreach (var s in sizes)
+                    if (fileExp != ".gif")
                     {
-                        int size = Convert.ToInt32(s);
-                        NetVips.Image saveImage = ImageWorker.CompressImage(bmp, size, size, false);
-                        saveImage.WriteToFile(Path.Combine(dirSave, s + "_" + imageName));
+                        var bmp = new AnyBitmap(AnyBitmap.FromStream(ms).GetBytes());
+                        string[] sizes = ((string)_configuration.GetValue<string>("ImageSizes")).Split(" ");
+                        foreach (var s in sizes)
+                        {
+                            int size = Convert.ToInt32(s);
+                            NetVips.Image saveImage = ImageWorker.CompressImage(bmp, size, size, false);
+                            saveImage.WriteToFile(Path.Combine(dirSave, s + "_" + imageName));
+                        }
+                    }
+                    else
+                    {
+                        var bmp = new AnyBitmap(AnyBitmap.FromStream(ms).GetBytes());
+                        bmp.SaveAs(Path.Combine(dirSave, imageName));
                     }
                 }
                 var entity = new CommentMediaEntity();

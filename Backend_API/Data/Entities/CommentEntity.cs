@@ -30,7 +30,7 @@ namespace Backend_API.Data.Entities
 
         public virtual List<CommentEntity>? CommentsChildren { get; set; }
         public virtual List<CommentMediaEntity>? CommentsMedia { get; set; }
-        public string CommentText { get; set; }
+        public string? CommentText { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
