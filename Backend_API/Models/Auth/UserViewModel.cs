@@ -56,6 +56,13 @@
     {
         public IFormFile BackgroundImage { get; set; }
     }
+    public class ChangeData
+    {
+        public string Name { get; set; }
+        public string Country { get; set; }
+        public string CountryCode { get; set; }
+        public string? Description { get; set; }
+    }
     public class SearchUser
     {
         public string FilterText { get; set; }

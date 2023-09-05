@@ -59,10 +59,41 @@ namespace Backend_API.Controllers
             return BadRequest("User not found!");
         }
 
+        [HttpGet("userBg/{id}")]
+        public async Task<IActionResult> GetUserBg(int id)
+        {
+            var user = await _userManager.Users.SingleOrDefaultAsync(u => u.Id == id);
+
+            if (user != null)
+            {
+                
+
+                return Ok(user.BackgroundImage);
+            }
+
+            return BadRequest("User not found!");
+        }
+
+        [HttpGet("userAvatar/{id}")]
+        public async Task<IActionResult> GetUserAvatar(int id)
+        {
+            var user = await _userManager.Users.SingleOrDefaultAsync(u => u.Id == id);
+
+            if (user != null)
+            {
+                
+
+                return Ok(user.Image);
+            }
+
+            return BadRequest("User not found!");
+        }
+
+
         [HttpGet("searchUser")]
         public async Task<IActionResult> SearchUser([FromQuery] string filterText)
         {
-            var user = await _appEFContext.Users.Where(u => u.Name.Contains(filterText)).ToListAsync();
+            var user = await _appEFContext.Users.Where(u => u.Name.ToLower().Contains(filterText.ToLower())).ToListAsync();
 
             return Ok(user);
         }
@@ -286,7 +317,7 @@ namespace Backend_API.Controllers
                     user.BackgroundImage = imageName;
                     await _userManager.UpdateAsync(user);  
 
-                    return Ok();
+                    return Ok(user.BackgroundImage);
                 }
                 return BadRequest();
 
@@ -294,6 +325,63 @@ namespace Backend_API.Controllers
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpPost("changeAvatar")]
+        public async Task<IActionResult> ChangeAvatar([FromForm] ChangeBgModel model)
+        {
+            try
+            {
+                var email = User.FindFirst(ClaimTypes.Email).Value;
+                var user = await _userManager.Users.SingleOrDefaultAsync(u => u.Email == email);
+                System.String imageName = string.Empty;
+                if (model.BackgroundImage != null)
+                {
+                    var fileExp = Path.GetExtension(model.BackgroundImage.FileName);
+                    var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images");
+                    imageName = Path.GetRandomFileName() + fileExp;
+                    using (var steam = System.IO.File.Create(Path.Combine(dirSave, imageName)))
+                    {
+                        await model.BackgroundImage.CopyToAsync(steam);
+                    }
+
+                    user.Image = imageName;
+                    await _userManager.UpdateAsync(user);
+
+                    return Ok(user.Image);
+                }
+                return BadRequest();
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpPost("changeData")]
+        public async Task<IActionResult> ChangeDataUser([FromForm] ChangeData model)
+        {
+            try
+            {
+                var email = User.FindFirst(ClaimTypes.Email).Value;
+                var user = await _userManager.Users.SingleOrDefaultAsync(u => u.Email == email);
+                System.String imageName = string.Empty;
+                user.Name = model.Name;
+                user.Country = model.Country;
+                user.CountryCode = model.CountryCode;
+                user.Description = model.Description == null ? "" : model.Description;
+
+                await _userManager.UpdateAsync(user);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Error: " + ex.Message);
             }
         }
 
